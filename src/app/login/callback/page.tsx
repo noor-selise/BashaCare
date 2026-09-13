@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import Link from "next/link"
 import { completeLogin } from "@/lib/blocks/auth"
 import { useAuth } from "@/lib/blocks/auth-context"
+import { deskPathFromAuth } from "@/lib/session/role-home"
 
 const CallbackPage = () => {
   const router = useRouter()
@@ -23,8 +24,8 @@ const CallbackPage = () => {
         return
       }
 
-      await refresh()
-      router.replace(result.returnTo)
+      const session = await refresh()
+      router.replace(deskPathFromAuth(session.roles, session.claims?.email) ?? "/")
     }
 
     void handleCallback()

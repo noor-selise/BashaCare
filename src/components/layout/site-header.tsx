@@ -3,7 +3,6 @@
 import Link from "next/link"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
-import { actors } from "@/data/seed"
 import { roleHome } from "@/lib/session/role-home"
 import { useBuilding, useSessionActor } from "@/lib/store"
 import { cn } from "@/lib/cn"
@@ -22,10 +21,13 @@ const navFor = (role: Role) => {
         { href: "/staff", label: "Board" },
         { href: "/inbox", label: "Alerts" }
       ]
+    case "admin":
     case "committee":
       return [
         { href: "/committee", label: "Desk" },
-        { href: "/inbox", label: "Alerts" }
+        { href: "/staff", label: "Board" },
+        { href: "/inbox", label: "Alerts" },
+        { href: "/account", label: "Account" }
       ]
     case "vendor":
       return [
@@ -43,24 +45,20 @@ export const SiteHeader = () => {
   const pathname = usePathname()
   const router = useRouter()
   const actor = useSessionActor()
-  const { signIn, signOut, notices, session } = useBuilding()
+  const { signOut, notices, session } = useBuilding()
   const unread = notices.filter((item) => {
-    return !item.read && (item.role === "all" || item.role === session?.role)
+    if (item.read) return false
+    if (session?.role === "admin") return true
+    return item.role === "all" || item.role === session?.role
   }).length
 
   if (!actor) return null
 
   const items = navFor(actor.role)
 
-  const handleSignOut = () => {
-    signOut()
-    router.push("/")
-  }
-
-  const handleSwitch = (actorId: string) => {
-    signIn(actorId)
-    const next = actors.find((item) => item.id === actorId)
-    if (next) router.push(roleHome(next.role))
+  const handleSignOut = async () => {
+    await signOut()
+    router.replace("/")
   }
 
   return (
@@ -90,23 +88,14 @@ export const SiteHeader = () => {
           ))}
         </nav>
         <div className="flex flex-wrap items-center gap-2">
-          <label className="sr-only" htmlFor="role-switch">
-            Switch person
-          </label>
-          <select
-            id="role-switch"
-            className="min-h-11 border border-hairline bg-surface px-3 text-[16px]"
-            value={actor.id}
-            onChange={(event) => handleSwitch(event.target.value)}
-          >
-            {actors.map((item) => (
-              <option key={item.id} value={item.id}>
-                {item.name} · {item.title}
-              </option>
-            ))}
-          </select>
-          <Button variant="ghost" onClick={handleSignOut}>
-            Leave
+          <p className="text-sm text-ink-soft">
+            {actor.name}
+            <span className="ml-2 text-[11px] uppercase tracking-[0.08em] text-courtyard">
+              {actor.role}
+            </span>
+          </p>
+          <Button variant="ghost" onClick={() => void handleSignOut()} aria-label="Sign out">
+            Sign out
           </Button>
         </div>
       </div>

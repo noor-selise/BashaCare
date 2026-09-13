@@ -7,7 +7,7 @@ import { EvidenceStrip } from "@/components/requests/evidence-strip"
 import { StatusRail } from "@/components/requests/status-rail"
 import { Button } from "@/components/ui/button"
 import { formatWhen, statusLabel } from "@/lib/format"
-import { findActor } from "@/data/seed"
+import { findPerson } from "@/data/directory"
 import { useBuilding } from "@/lib/store"
 
 const ResidentRequestPage = () => {
@@ -47,7 +47,7 @@ const ResidentRequestPage = () => {
               <li key={event.id} className="text-sm text-ink-soft">
                 <span className="font-mono text-ink-faint">{formatWhen(event.at)}</span>
                 {" · "}
-                {findActor(event.actorId).name}: {event.label}
+                {findPerson(event.actorId).name}: {event.label}
                 {event.detail ? ` — ${event.detail}` : ""}
               </li>
             ))}

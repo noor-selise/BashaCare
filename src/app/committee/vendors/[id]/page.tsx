@@ -5,13 +5,13 @@ import { useParams } from "next/navigation"
 import { AppShell } from "@/components/layout/app-shell"
 import { formatTaka } from "@/lib/money"
 import { formatWhen } from "@/lib/format"
-import { findVendor } from "@/data/seed"
+import { findVendor } from "@/data/directory"
 import { useBuilding } from "@/lib/store"
 
 const VendorHistoryPage = () => {
   const { id } = useParams<{ id: string }>()
-  const { requests, decisions } = useBuilding()
-  const vendor = findVendor(id)
+  const { requests, decisions, vendors } = useBuilding()
+  const vendor = findVendor(id, vendors)
   const jobs = requests.filter((item) => item.vendorId === id)
   const total = jobs.reduce((sum, item) => sum + (item.cost ?? 0), 0)
 

@@ -9,7 +9,7 @@ npm run cert
 npm run dev
 ```
 
-Open `https://dbsblo.slsblx.com` — not localhost. Next stays on `127.0.0.1:3000`; an HTTPS proxy on 443 forwards the real app domain so the Blocks session cookie can land. First time on a machine: add `127.0.0.1 dbsblo.slsblx.com` to `/etc/hosts`, then `npm run cert`. If the proxy cannot bind 443, run `sudo npm run proxy` in a second terminal.
+Open `https://dbsblo.slsblx.com` — not localhost. `npm run dev` starts Next on `127.0.0.1:3000` and the HTTPS proxy on 443. First sudo on a machine grants this Node binary `cap_net_bind_service` so later runs do not ask again. First time on a machine: add `127.0.0.1 dbsblo.slsblx.com` to `/etc/hosts`, then `npm run cert`.
 
 Blocks project is BashaCare (`D975c4874bd6b47b995cce54f926c09cc`). Fill `.env.local` from `blocks projects get` and `blocks auth oidc-clients list` only. The public OIDC callback is `https://dbsblo.slsblx.com/login/callback`.
 

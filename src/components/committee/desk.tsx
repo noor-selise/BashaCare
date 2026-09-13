@@ -1,6 +1,5 @@
 import Link from "next/link"
 import { formatTaka } from "@/lib/money"
-import { PUMP_TOTAL } from "@/data/seed"
 import { openUrgents, vendorSpend } from "@/features/spend/rollups"
 import type { Decision, RequestRecord, Vendor } from "@/types"
 
@@ -14,6 +13,9 @@ export const CommitteeDesk = ({ requests, vendors, decisions }: CommitteeDeskPro
   const urgentOpen = openUrgents(requests)
   const billed = vendorSpend(requests, vendors)
   const slow = billed[0]
+  const pumpTotal = requests
+    .filter((item) => item.equipmentId === "roof-pump")
+    .reduce((sum, item) => sum + (item.cost ?? 0), 0)
 
   return (
     <>
@@ -64,7 +66,7 @@ export const CommitteeDesk = ({ requests, vendors, decisions }: CommitteeDeskPro
         <p className="text-[11px] uppercase tracking-[0.08em]">Replace recommendation</p>
         <h2 className="mt-2 font-display text-2xl">Roof pump</h2>
         <p className="mt-2 max-w-2xl">
-          Six repairs in five months totaling {formatTaka(PUMP_TOTAL)} from Rahman Pump Service.
+          Six repairs in five months totaling {formatTaka(pumpTotal)} from Rahman Pump Service.
           Another patch is cheaper this month and more expensive this year.
         </p>
         {decisions.map((decision) => (

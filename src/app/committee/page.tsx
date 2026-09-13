@@ -2,11 +2,10 @@
 
 import { AppShell } from "@/components/layout/app-shell"
 import { CommitteeDesk } from "@/components/committee/desk"
-import { vendors } from "@/data/seed"
 import { useBuilding } from "@/lib/store"
 
 const CommitteePage = () => {
-  const { requests, decisions } = useBuilding()
+  const { requests, decisions, vendors } = useBuilding()
 
   return (
     <AppShell allow={["committee"]}>

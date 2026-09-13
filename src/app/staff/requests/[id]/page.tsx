@@ -10,12 +10,12 @@ import { AiPanel } from "@/components/triage/ai-panel"
 import { Button } from "@/components/ui/button"
 import { formatWhen, statusLabel, urgencyLabel } from "@/lib/format"
 import { formatTaka } from "@/lib/money"
-import { findActor, vendors } from "@/data/seed"
+import { findPerson } from "@/data/directory"
 import { useBuilding } from "@/lib/store"
 
 const StaffRequestPage = () => {
   const { id } = useParams<{ id: string }>()
-  const { requests, acknowledge, assignVendor, markDone } = useBuilding()
+  const { requests, vendors, acknowledge, assignVendor, markDone } = useBuilding()
   const request = requests.find((item) => item.id === id)
 
   const handleAssign = (event: FormEvent<HTMLFormElement>) => {
@@ -67,7 +67,7 @@ const StaffRequestPage = () => {
                 id="vendorId"
                 name="vendorId"
                 className="min-h-11 border border-hairline bg-surface px-3 text-[16px]"
-                defaultValue={request.vendorId ?? vendors[0].id}
+                defaultValue={request.vendorId ?? vendors[0]?.id}
               >
                 {vendors.map((vendor) => (
                   <option key={vendor.id} value={vendor.id}>
@@ -102,7 +102,7 @@ const StaffRequestPage = () => {
             <ol className="space-y-2 text-sm text-ink-soft">
               {request.timeline.map((event) => (
                 <li key={event.id}>
-                  {formatWhen(event.at)} · {findActor(event.actorId).name}: {event.label}
+                  {formatWhen(event.at)} · {findPerson(event.actorId).name}: {event.label}
                 </li>
               ))}
             </ol>

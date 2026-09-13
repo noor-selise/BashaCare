@@ -1,4 +1,4 @@
-export type Role = "resident" | "staff" | "committee" | "vendor"
+export type Role = "admin" | "resident" | "staff" | "committee" | "vendor"
 
 export type Urgency = "emergency" | "urgent" | "routine"
 

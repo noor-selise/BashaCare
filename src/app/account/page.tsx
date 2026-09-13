@@ -9,7 +9,7 @@ const AccountPage = () => {
   const { configured, claims, status } = useAuth()
 
   return (
-    <AppShell allow={["resident", "staff", "committee", "vendor"]}>
+    <AppShell allow={["admin", "resident", "staff", "committee", "vendor"]}>
       <h1 className="font-display text-[32px] leading-tight">Account</h1>
       <dl className="mt-6 max-w-lg space-y-3">
         <div>

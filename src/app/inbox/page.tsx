@@ -10,10 +10,14 @@ import { useBuilding, useSessionActor } from "@/lib/store"
 const InboxPage = () => {
   const actor = useSessionActor()
   const { notices, markNoticeRead } = useBuilding()
-  const mine = notices.filter((item) => item.role === "all" || item.role === actor?.role)
+  const mine = notices.filter((item) => {
+    if (!actor) return false
+    if (actor.role === "admin") return true
+    return item.role === "all" || item.role === actor.role
+  })
 
   return (
-    <AppShell allow={["resident", "staff", "committee", "vendor"]}>
+    <AppShell allow={["admin", "resident", "staff", "committee", "vendor"]}>
       <h1 className="font-display text-[32px] leading-tight">Alerts</h1>
       <div className="mt-6 space-y-3">
         {mine.length === 0 ? (

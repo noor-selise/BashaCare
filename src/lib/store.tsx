@@ -10,17 +10,26 @@ import {
 } from "react"
 import { proposeFromMessage } from "@/features/ai/propose"
 import {
-  actors,
-  seedDecisions,
-  seedNotices,
-  seedRequests
-} from "@/data/seed"
+  deskRoleFromSlugs,
+  findPerson,
+  personFromEmail,
+  vendors as directoryVendors
+} from "@/data/directory"
+import { useAuth } from "@/lib/blocks/auth-context"
+import {
+  loadBuildingRecords,
+  markNoticeReadRemote,
+  saveNotice,
+  saveRequest,
+  seedBuildingRecords
+} from "@/lib/blocks/building-data"
 import type {
   Decision,
   Notice,
   RequestRecord,
   Session,
-  Urgency
+  Urgency,
+  Vendor
 } from "@/types"
 
 type BuildingState = {
@@ -28,12 +37,12 @@ type BuildingState = {
   requests: RequestRecord[]
   decisions: Decision[]
   notices: Notice[]
+  vendors: Vendor[]
 }
 
 type BuildingApi = BuildingState & {
   hydrated: boolean
-  signIn: (actorId: string) => void
-  signOut: () => void
+  signOut: () => Promise<void>
   submitRequest: (input: { message: string; photoLabel?: string }) => string
   acknowledge: (id: string) => void
   applyAi: (id: string, urgency: Urgency, reason?: string) => void
@@ -53,70 +62,91 @@ const nextId = (prefix: string) => {
 
 const now = () => new Date().toISOString()
 
-const SESSION_KEY = "bashacare.session"
-const STATE_KEY = "bashacare.state"
-
-const readStoredState = (): BuildingState | null => {
-  try {
-    const raw = sessionStorage.getItem(STATE_KEY)
-    if (raw) return JSON.parse(raw) as BuildingState
-    const sessionRaw = sessionStorage.getItem(SESSION_KEY)
-    if (sessionRaw) {
-      return {
-        session: JSON.parse(sessionRaw) as Session,
-        requests: seedRequests,
-        decisions: seedDecisions,
-        notices: seedNotices
-      }
-    }
-  } catch {
-    // sessionStorage can be blocked in some embedded browsers
-  }
-  return null
-}
-
 export const BuildingProvider = ({ children }: { children: ReactNode }) => {
+  const { status, claims, roles, logout } = useAuth()
   const [state, setState] = useState<BuildingState>({
     session: null,
-    requests: seedRequests,
-    decisions: seedDecisions,
-    notices: seedNotices
+    requests: [],
+    decisions: [],
+    notices: [],
+    vendors: directoryVendors
   })
   const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
-    const stored = readStoredState()
-    if (stored) setState(stored)
-    setHydrated(true)
-  }, [])
-
-  useEffect(() => {
-    if (!hydrated) return
-    try {
-      sessionStorage.setItem(STATE_KEY, JSON.stringify(state))
-      if (state.session) {
-        sessionStorage.setItem(SESSION_KEY, JSON.stringify(state.session))
-      } else {
-        sessionStorage.removeItem(SESSION_KEY)
-      }
-    } catch {
-      // keep in-memory session if storage is blocked
+    if (status === "loading") return
+    if (status !== "authenticated" || !claims?.email) {
+      setState((current) => ({
+        ...current,
+        session: null,
+        requests: [],
+        decisions: [],
+        notices: []
+      }))
+      setHydrated(true)
+      return
     }
-  }, [hydrated, state])
+
+    const person = personFromEmail(claims.email)
+    const role = deskRoleFromSlugs(roles) ?? person?.role
+    if (!role) {
+      setState((current) => ({ ...current, session: null }))
+      setHydrated(true)
+      return
+    }
+
+    const session = { actorId: person?.id ?? claims.email, role }
+    setState((current) => ({ ...current, session }))
+
+    const load = async () => {
+      try {
+        if (role === "admin") {
+          await seedBuildingRecords()
+        }
+        const records = await loadBuildingRecords()
+        setState((current) => ({
+          ...current,
+          session,
+          ...records
+        }))
+      } catch {
+        setState((current) => ({ ...current, session }))
+      } finally {
+        setHydrated(true)
+      }
+    }
+
+    void load()
+  }, [claims, roles, status])
 
   const api = useMemo<BuildingApi>(() => {
-    const actor = actors.find((item) => item.id === state.session?.actorId)
+    const actor = state.session ? findPerson(state.session.actorId) : null
+
+    const persist = (item: RequestRecord) => {
+      void saveRequest(item).then((saved) => {
+        if (saved.id === item.id) return
+        setState((current) => ({
+          ...current,
+          requests: current.requests.map((row) => {
+            return row.id === item.id ? saved : row
+          })
+        }))
+      })
+    }
 
     const patchRequest = (
       id: string,
       update: (item: RequestRecord) => RequestRecord
     ) => {
-      setState((current) => ({
-        ...current,
-        requests: current.requests.map((item) => {
-          return item.id === id ? update(item) : item
+      setState((current) => {
+        const requests = current.requests.map((item) => {
+          if (item.id !== id) return item
+          const next = update(item)
+          persist(next)
+          return next
         })
-      }))
+        return { ...current, requests }
+      })
     }
 
     const addEvent = (item: RequestRecord, label: string, detail?: string) => {
@@ -136,11 +166,11 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const visibleRequests = () => {
-      if (!actor) return []
-      if (actor.role === "resident") {
+      if (!actor || !state.session) return []
+      if (state.session.role === "resident") {
         return state.requests.filter((item) => item.residentId === actor.id)
       }
-      if (actor.role === "vendor") {
+      if (state.session.role === "vendor") {
         return state.requests.filter((item) => item.vendorId === actor.vendorId)
       }
       return state.requests
@@ -149,17 +179,15 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
     return {
       ...state,
       hydrated,
-      signIn: (actorId) => {
-        const next = actors.find((item) => item.id === actorId)
-        if (!next) return
-        const session = { actorId: next.id, role: next.role }
+      signOut: async () => {
+        await logout()
         setState((current) => ({
           ...current,
-          session
+          session: null,
+          requests: [],
+          decisions: [],
+          notices: []
         }))
-      },
-      signOut: () => {
-        setState((current) => ({ ...current, session: null }))
       },
       submitRequest: ({ message, photoLabel }) => {
         const id = nextId("req")
@@ -195,22 +223,22 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
           ],
           ai: suggestion
         }
+        const notice: Notice = {
+          id: nextId("n"),
+          role: "staff",
+          title: `New request from ${record.flatId}`,
+          body: message.slice(0, 120),
+          requestId: id,
+          at: createdAt,
+          read: false
+        }
         setState((current) => ({
           ...current,
           requests: [record, ...current.requests],
-          notices: [
-            {
-              id: nextId("n"),
-              role: "staff",
-              title: `New request from ${record.flatId}`,
-              body: message.slice(0, 120),
-              requestId: id,
-              at: createdAt,
-              read: false
-            },
-            ...current.notices
-          ]
+          notices: [notice, ...current.notices]
         }))
+        persist(record)
+        void saveNotice(notice)
         return id
       },
       acknowledge: (id) => {
@@ -234,7 +262,7 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
                 from,
                 to: urgency,
                 reason: reason ?? "Staff judgement",
-                actorId: state.session?.actorId ?? "hasan"
+                actorId: state.session?.actorId ?? "hasan@yopmail.com"
               }
           return addEvent(
             {
@@ -316,10 +344,11 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
             return item.id === id ? { ...item, read: true } : item
           })
         }))
+        void markNoticeReadRemote(id)
       },
       visibleRequests
     }
-  }, [hydrated, state])
+  }, [hydrated, logout, state])
 
   return (
     <BuildingContext.Provider value={api}>
@@ -336,6 +365,7 @@ export const useBuilding = () => {
 
 export const useSessionActor = () => {
   const { session } = useBuilding()
-  return actors.find((item) => item.id === session?.actorId) ?? null
+  if (!session) return null
+  const person = findPerson(session.actorId)
+  return { ...person, role: session.role }
 }
-

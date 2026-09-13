@@ -1,15 +1,22 @@
 "use client"
 
-import { useState } from "react"
-import Link from "next/link"
+import { useEffect, useState } from "react"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { useAuth } from "@/lib/blocks/auth-context"
-import { BUILDING } from "@/data/seed"
+import { BUILDING } from "@/data/directory"
+import { deskPathFromAuth } from "@/lib/session/role-home"
 
 const LoginPage = () => {
-  const { configured, login } = useAuth()
+  const router = useRouter()
+  const { configured, login, status, roles, claims } = useAuth()
   const [pending, setPending] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const deskPath = deskPathFromAuth(roles, claims?.email)
+
+  useEffect(() => {
+    if (status === "authenticated" && deskPath) router.replace(deskPath)
+  }, [deskPath, router, status])
 
   const handleLogin = async () => {
     setError(null)
@@ -22,6 +29,14 @@ const LoginPage = () => {
     }
   }
 
+  if (status === "loading" || (status === "authenticated" && deskPath)) {
+    return (
+      <div className="min-h-screen bg-canvas px-4 py-16 text-center text-ink-soft">
+        Opening the desk…
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-canvas">
       <div className="mx-auto flex min-h-screen max-w-lg flex-col justify-center px-5 py-16">
@@ -32,7 +47,7 @@ const LoginPage = () => {
           Sign in to {BUILDING.name}
         </h1>
         <p className="mt-4 text-ink-soft">
-          Hosted Blocks login. After you activate the invite, this button sends you to IAM and back to the desk.
+          Hosted Blocks login. After you sign in, the desk for your role opens.
         </p>
         {!configured ? (
           <p className="mt-6 border border-hairline bg-warm px-4 py-3 text-sm text-ink-soft" role="status">
@@ -45,7 +60,7 @@ const LoginPage = () => {
             {error}
           </p>
         ) : null}
-        <div className="mt-8 flex flex-wrap gap-3">
+        <div className="mt-8">
           <Button
             onClick={() => {
               void handleLogin()
@@ -55,12 +70,6 @@ const LoginPage = () => {
           >
             {pending ? "Opening login…" : "Sign in with Blocks"}
           </Button>
-          <Link
-            href="/"
-            className="inline-flex min-h-11 items-center text-ink-soft underline-offset-4 hover:underline"
-          >
-            Use the demo desk
-          </Link>
         </div>
       </div>
     </div>

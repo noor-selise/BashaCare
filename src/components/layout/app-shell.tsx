@@ -25,12 +25,14 @@ export const AppShell = ({
       router.replace("/")
       return
     }
-    if (actor && !allow.includes(actor.role)) {
+    if (actor && actor.role !== "admin" && !allow.includes(actor.role)) {
       router.replace(roleHome(actor.role))
     }
   }, [actor, allow, hydrated, router, session])
 
-  if (!hydrated || !actor || !allow.includes(actor.role)) {
+  const allowed = Boolean(actor && (actor.role === "admin" || allow.includes(actor.role)))
+
+  if (!hydrated || !allowed) {
     return (
       <div className="px-4 py-16 text-center text-ink-soft">Opening the desk…</div>
     )
