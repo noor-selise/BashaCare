@@ -1,0 +1,55 @@
+{
+  "schemaName": "Decision",
+  "collectionName": "blx_Decisions",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "title",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Committee decision title"
+    },
+    {
+      "name": "body",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Decision body"
+    },
+    {
+      "name": "vendorId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Related vendor id"
+    },
+    {
+      "name": "equipmentId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Related equipment id"
+    },
+    {
+      "name": "at",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO decision timestamp"
+    },
+    {
+      "name": "actorId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Committee member who recorded it"
+    }
+  ]
+}

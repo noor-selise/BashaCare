@@ -1,0 +1,55 @@
+{
+  "schemaName": "Notice",
+  "collectionName": "blx_Notices",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "role",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Audience role or all"
+    },
+    {
+      "name": "title",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Alert title"
+    },
+    {
+      "name": "body",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Alert body"
+    },
+    {
+      "name": "requestId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Related request id"
+    },
+    {
+      "name": "at",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO notice timestamp"
+    },
+    {
+      "name": "read",
+      "type": "Boolean",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Whether the recipient has read it"
+    }
+  ]
+}

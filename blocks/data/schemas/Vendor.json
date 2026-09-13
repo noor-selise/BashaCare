@@ -1,0 +1,23 @@
+{
+  "schemaName": "Vendor",
+  "collectionName": "blx_Vendors",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "name",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Vendor display name"
+    },
+    {
+      "name": "trade",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Trade such as lift or pump"
+    }
+  ]
+}

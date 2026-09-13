@@ -1,0 +1,167 @@
+{
+  "schemaName": "Request",
+  "collectionName": "blx_Requests",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "flatId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Flat id such as 7-B"
+    },
+    {
+      "name": "residentId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Resident actor id"
+    },
+    {
+      "name": "message",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Resident report text"
+    },
+    {
+      "name": "category",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "lift, water, electrical, plumbing, parking, garden, other"
+    },
+    {
+      "name": "urgency",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "emergency, urgent, routine"
+    },
+    {
+      "name": "status",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Request lifecycle status"
+    },
+    {
+      "name": "vendorId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Assigned vendor id"
+    },
+    {
+      "name": "equipmentId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Equipment id when the request is about kit"
+    },
+    {
+      "name": "cost",
+      "type": "Float",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Job cost in BDT"
+    },
+    {
+      "name": "costCategory",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Spend bucket such as pump"
+    },
+    {
+      "name": "createdAt",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO created timestamp"
+    },
+    {
+      "name": "acknowledgedAt",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO acknowledged timestamp"
+    },
+    {
+      "name": "assignedAt",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO assigned timestamp"
+    },
+    {
+      "name": "completedAt",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO completed timestamp"
+    },
+    {
+      "name": "verifiedAt",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "ISO resident-verified timestamp"
+    },
+    {
+      "name": "evidenceJson",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Before/after evidence as JSON"
+    },
+    {
+      "name": "timelineJson",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Status timeline as JSON"
+    },
+    {
+      "name": "aiJson",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "AI suggestion as JSON"
+    },
+    {
+      "name": "staffOverrideJson",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Staff urgency override as JSON"
+    },
+    {
+      "name": "staffReply",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Staff reply sent to the resident"
+    }
+  ]
+}

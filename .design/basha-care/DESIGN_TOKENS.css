@@ -1,0 +1,202 @@
+/* BashaCare tokens — Scandinavian civic.
+   Philosophy: warmth + restraint. Emergency is terracotta. Primary is courtyard teal.
+   Copy into src/app/globals.css when the Next.js app exists. Do not use raw hex in components. */
+
+:root {
+  --color-bg-primary: #f4efe6;
+  --color-bg-secondary: #fffdf8;
+  --color-bg-tertiary: #f7f1e6;
+  --color-bg-inverse: #1c1915;
+  --color-bg-warm: #ebe3d4;
+
+  --color-text-primary: #1c1915;
+  --color-text-secondary: #5c564c;
+  --color-text-tertiary: #8a8376;
+  --color-text-inverse: #f3ede3;
+  --color-text-link: #0f5c56;
+
+  --color-border-primary: #d9d0c1;
+  --color-border-secondary: #ebe3d4;
+  --color-border-focus: #0f5c56;
+
+  --color-accent-primary: #0f5c56;
+  --color-accent-primary-hover: #0a4742;
+  --color-accent-primary-active: #083833;
+  --color-accent-secondary: #d7edea;
+
+  --color-status-success: #2f6f4e;
+  --color-status-success-wash: #dcebde;
+  --color-status-warning: #b8860b;
+  --color-status-warning-wash: #f6ebc7;
+  --color-status-error: #c45c26;
+  --color-status-error-wash: #f8e3d4;
+  --color-status-info: #c4a574;
+
+  --color-emergency: #c45c26;
+  --color-emergency-deep: #8c3a14;
+  --color-emergency-wash: #f8e3d4;
+
+  --color-surface-overlay: rgba(28, 25, 21, 0.4);
+
+  --space-0: 0;
+  --space-1: 2px;
+  --space-2: 4px;
+  --space-3: 8px;
+  --space-4: 12px;
+  --space-5: 16px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 48px;
+  --space-9: 64px;
+  --space-10: 96px;
+  --space-11: 128px;
+  --space-12: 192px;
+
+  --font-family-display: "Fraunces", "Source Serif 4", Georgia, serif;
+  --font-family-body: "Figtree", "Source Sans 3", sans-serif;
+  --font-family-bengali: "Noto Sans Bengali", "Nirmala UI", sans-serif;
+  --font-family-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --font-size-xs: 11px;
+  --font-size-sm: 13px;
+  --font-size-base: 16px;
+  --font-size-md: 18px;
+  --font-size-lg: 22px;
+  --font-size-xl: 28px;
+  --font-size-2xl: 32px;
+  --font-size-3xl: 40px;
+  --font-size-4xl: clamp(40px, 6vw, 72px);
+
+  --font-weight-normal: 400;
+  --font-weight-medium: 550;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 650;
+
+  --line-height-tight: 1.15;
+  --line-height-normal: 1.55;
+  --line-height-relaxed: 1.7;
+
+  --letter-spacing-tight: -0.03em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.08em;
+
+  --max-width-content: 65ch;
+  --max-width-wide: 1200px;
+  --max-width-page: 1280px;
+
+  --border-radius-sm: 8px;
+  --border-radius-md: 12px;
+  --border-radius-lg: 16px;
+  --border-radius-full: 999px;
+
+  --shadow-sm: 0 1px 0 rgba(28, 25, 21, 0.06);
+  --shadow-md: 0 8px 24px rgba(28, 25, 21, 0.06);
+  --shadow-lg: 0 18px 40px rgba(28, 25, 21, 0.08);
+  --shadow-focus: 0 0 0 3px rgba(15, 92, 86, 0.35);
+
+  --duration-instant: 50ms;
+  --duration-fast: 150ms;
+  --duration-normal: 280ms;
+  --duration-slow: 450ms;
+  --duration-slower: 600ms;
+
+  --easing-default: cubic-bezier(0.22, 1, 0.36, 1);
+  --easing-in: cubic-bezier(0.4, 0, 1, 1);
+  --easing-out: cubic-bezier(0, 0, 0.2, 1);
+  --easing-bounce: cubic-bezier(0.22, 1, 0.36, 1);
+
+  --breakpoint-sm: 375px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+}
+
+[data-theme="dark"] {
+  --color-bg-primary: #1a1713;
+  --color-bg-secondary: #26211b;
+  --color-bg-tertiary: #2f2921;
+  --color-bg-inverse: #f3ede3;
+  --color-bg-warm: #221e18;
+
+  --color-text-primary: #f3ede3;
+  --color-text-secondary: #c9c0b3;
+  --color-text-tertiary: #9a9184;
+  --color-text-inverse: #1c1915;
+  --color-text-link: #7ec8c0;
+
+  --color-border-primary: #3d362c;
+  --color-border-secondary: #2f2921;
+  --color-border-focus: #7ec8c0;
+
+  --color-accent-primary: #7ec8c0;
+  --color-accent-primary-hover: #a4d9d3;
+  --color-accent-primary-active: #c5e8e4;
+  --color-accent-secondary: #1e3d3a;
+
+  --color-status-success: #8fcb9b;
+  --color-status-success-wash: #1e3326;
+  --color-status-warning: #e6c56a;
+  --color-status-warning-wash: #3a3118;
+  --color-status-error: #e08956;
+  --color-status-error-wash: #3a2418;
+  --color-status-info: #e0c48a;
+
+  --color-emergency: #e08956;
+  --color-emergency-deep: #f4c4a8;
+  --color-emergency-wash: #3a2418;
+
+  --color-surface-overlay: rgba(0, 0, 0, 0.55);
+
+  --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+  --shadow-lg: 0 18px 40px rgba(0, 0, 0, 0.45);
+  --shadow-focus: 0 0 0 3px rgba(126, 200, 192, 0.4);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg-primary: #1a1713;
+    --color-bg-secondary: #26211b;
+    --color-bg-tertiary: #2f2921;
+    --color-bg-inverse: #f3ede3;
+    --color-bg-warm: #221e18;
+    --color-text-primary: #f3ede3;
+    --color-text-secondary: #c9c0b3;
+    --color-text-tertiary: #9a9184;
+    --color-text-inverse: #1c1915;
+    --color-text-link: #7ec8c0;
+    --color-border-primary: #3d362c;
+    --color-border-secondary: #2f2921;
+    --color-border-focus: #7ec8c0;
+    --color-accent-primary: #7ec8c0;
+    --color-accent-primary-hover: #a4d9d3;
+    --color-accent-primary-active: #c5e8e4;
+    --color-accent-secondary: #1e3d3a;
+    --color-status-success: #8fcb9b;
+    --color-status-success-wash: #1e3326;
+    --color-status-warning: #e6c56a;
+    --color-status-warning-wash: #3a3118;
+    --color-status-error: #e08956;
+    --color-status-error-wash: #3a2418;
+    --color-status-info: #e0c48a;
+    --color-emergency: #e08956;
+    --color-emergency-deep: #f4c4a8;
+    --color-emergency-wash: #3a2418;
+    --color-surface-overlay: rgba(0, 0, 0, 0.55);
+    --shadow-sm: 0 1px 0 rgba(0, 0, 0, 0.4);
+    --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.4);
+    --shadow-lg: 0 18px 40px rgba(0, 0, 0, 0.45);
+    --shadow-focus: 0 0 0 3px rgba(126, 200, 192, 0.4);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-instant: 0ms;
+    --duration-fast: 0ms;
+    --duration-normal: 0ms;
+    --duration-slow: 0ms;
+    --duration-slower: 0ms;
+  }
+}

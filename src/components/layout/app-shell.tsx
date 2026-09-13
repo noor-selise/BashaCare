@@ -1,0 +1,48 @@
+"use client"
+
+import { useRouter } from "next/navigation"
+import { useEffect, type ReactNode } from "react"
+import { EmergencyBanner } from "@/components/layout/emergency-banner"
+import { SiteHeader } from "@/components/layout/site-header"
+import { roleHome } from "@/lib/session/role-home"
+import { useBuilding, useSessionActor } from "@/lib/store"
+import type { Role } from "@/types"
+
+export const AppShell = ({
+  children,
+  allow
+}: {
+  children: ReactNode
+  allow: Role[]
+}) => {
+  const router = useRouter()
+  const actor = useSessionActor()
+  const { session, hydrated } = useBuilding()
+
+  useEffect(() => {
+    if (!hydrated) return
+    if (!session) {
+      router.replace("/")
+      return
+    }
+    if (actor && !allow.includes(actor.role)) {
+      router.replace(roleHome(actor.role))
+    }
+  }, [actor, allow, hydrated, router, session])
+
+  if (!hydrated || !actor || !allow.includes(actor.role)) {
+    return (
+      <div className="px-4 py-16 text-center text-ink-soft">Opening the desk…</div>
+    )
+  }
+
+  return (
+    <div className="min-h-screen bg-canvas">
+      <EmergencyBanner />
+      <SiteHeader />
+      <main className="mx-auto w-full max-w-[1200px] px-4 py-6 md:px-8 md:py-8">
+        {children}
+      </main>
+    </div>
+  )
+}

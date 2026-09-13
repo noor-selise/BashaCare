@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+:root {
+  --color-bg-primary: #f4efe6;
+  --color-bg-secondary: #fffdf8;
+  --color-bg-tertiary: #f7f1e6;
+  --color-bg-inverse: #1c1915;
+  --color-bg-warm: #ebe3d4;
+  --color-text-primary: #1c1915;
+  --color-text-secondary: #5c564c;
+  --color-text-tertiary: #8a8376;
+  --color-text-inverse: #f3ede3;
+  --color-text-link: #0f5c56;
+  --color-border-primary: #d9d0c1;
+  --color-border-secondary: #ebe3d4;
+  --color-border-focus: #0f5c56;
+  --color-accent-primary: #0f5c56;
+  --color-accent-primary-hover: #0a4742;
+  --color-accent-secondary: #d7edea;
+  --color-status-success: #2f6f4e;
+  --color-status-success-wash: #dcebde;
+  --color-status-warning: #b8860b;
+  --color-status-warning-wash: #f6ebc7;
+  --color-status-info: #c4a574;
+  --color-emergency: #c45c26;
+  --color-emergency-deep: #8c3a14;
+  --color-emergency-wash: #f8e3d4;
+  --shadow-lg: 0 18px 40px rgba(28, 25, 21, 0.08);
+}
+
+[data-theme="dark"] {
+  --color-bg-primary: #1a1713;
+  --color-bg-secondary: #26211b;
+  --color-bg-tertiary: #2f2921;
+  --color-bg-inverse: #f3ede3;
+  --color-bg-warm: #221e18;
+  --color-text-primary: #f3ede3;
+  --color-text-secondary: #c9c0b3;
+  --color-text-tertiary: #9a9184;
+  --color-text-inverse: #1c1915;
+  --color-text-link: #7ec8c0;
+  --color-border-primary: #3d362c;
+  --color-border-secondary: #2f2921;
+  --color-border-focus: #7ec8c0;
+  --color-accent-primary: #7ec8c0;
+  --color-accent-primary-hover: #a4d9d3;
+  --color-accent-secondary: #1e3d3a;
+  --color-status-success: #8fcb9b;
+  --color-status-success-wash: #1e3326;
+  --color-status-warning: #e6c56a;
+  --color-status-warning-wash: #3a3118;
+  --color-status-info: #e0c48a;
+  --color-emergency: #e08956;
+  --color-emergency-deep: #f4c4a8;
+  --color-emergency-wash: #3a2418;
+  --shadow-lg: 0 18px 40px rgba(0, 0, 0, 0.45);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --color-bg-primary: #1a1713;
+    --color-bg-secondary: #26211b;
+    --color-bg-tertiary: #2f2921;
+    --color-text-primary: #f3ede3;
+    --color-text-secondary: #c9c0b3;
+    --color-text-tertiary: #9a9184;
+    --color-text-link: #7ec8c0;
+    --color-border-primary: #3d362c;
+    --color-accent-primary: #7ec8c0;
+    --color-accent-primary-hover: #a4d9d3;
+    --color-accent-secondary: #1e3d3a;
+    --color-status-success: #8fcb9b;
+    --color-status-success-wash: #1e3326;
+    --color-status-warning: #e6c56a;
+    --color-status-warning-wash: #3a3118;
+    --color-status-info: #e0c48a;
+    --color-emergency: #e08956;
+    --color-emergency-deep: #f4c4a8;
+    --color-emergency-wash: #3a2418;
+    --shadow-lg: 0 18px 40px rgba(0, 0, 0, 0.45);
+  }
+}
+
+@theme inline {
+  --color-canvas: var(--color-bg-primary);
+  --color-surface: var(--color-bg-secondary);
+  --color-surface-2: var(--color-bg-tertiary);
+  --color-warm: var(--color-bg-warm);
+  --color-ink: var(--color-text-primary);
+  --color-ink-soft: var(--color-text-secondary);
+  --color-ink-faint: var(--color-text-tertiary);
+  --color-hairline: var(--color-border-primary);
+  --color-courtyard: var(--color-accent-primary);
+  --color-courtyard-hover: var(--color-accent-primary-hover);
+  --color-courtyard-soft: var(--color-accent-secondary);
+  --color-terracotta: var(--color-emergency);
+  --color-terracotta-deep: var(--color-emergency-deep);
+  --color-terracotta-wash: var(--color-emergency-wash);
+  --color-clay: var(--color-status-info);
+  --color-garden: var(--color-status-success);
+  --color-garden-wash: var(--color-status-success-wash);
+  --color-warning: var(--color-status-warning);
+  --color-warning-wash: var(--color-status-warning-wash);
+  --font-display: var(--font-fraunces), "Source Serif 4", Georgia, serif;
+  --font-body: var(--font-figtree), "Source Sans 3", sans-serif;
+  --font-bengali: var(--font-noto-sans-bengali), "Nirmala UI", sans-serif;
+  --font-mono: var(--font-ibm-plex-mono), ui-monospace, monospace;
+}
+
+html,
+body {
+  background: var(--color-bg-primary);
+  color: var(--color-text-primary);
+  font-family: var(--font-body);
+  min-height: 100%;
+}
+
+body {
+  font-size: 16px;
+  line-height: 1.55;
+}
+
+.font-display {
+  font-variation-settings: "SOFT" 30, "WONK" 0, "opsz" 72;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
