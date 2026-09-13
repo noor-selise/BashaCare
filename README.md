@@ -5,12 +5,13 @@ Apartment maintenance desk for Uttara Heights. Next.js App Router. Product spec 
 ```
 npm install
 npm run check:seed
+npm run cert
 npm run dev
 ```
 
-Open `http://localhost:3000` and enter as Nusrat (7-B), Hasan (staff), or Rina (committee).
+Open `https://dbsblo.slsblx.com` — not localhost. Next stays on `127.0.0.1:3000`; an HTTPS proxy on 443 forwards the real app domain so the Blocks session cookie can land. First time on a machine: add `127.0.0.1 dbsblo.slsblx.com` to `/etc/hosts`, then `npm run cert`. If the proxy cannot bind 443, run `sudo npm run proxy` in a second terminal.
 
-Blocks project is BashaCare (`D975c4874bd6b47b995cce54f926c09cc`). Fill `.env.local` from `blocks projects get` and `blocks auth oidc-clients list` only. Hosted login needs HTTPS on `dbsblo.slsblx.com`; `http://localhost` will not keep the session cookie.
+Blocks project is BashaCare (`D975c4874bd6b47b995cce54f926c09cc`). Fill `.env.local` from `blocks projects get` and `blocks auth oidc-clients list` only. The public OIDC callback is `https://dbsblo.slsblx.com/login/callback`.
 
 ```
 blocks init

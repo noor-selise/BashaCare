@@ -21,3 +21,4 @@ All changes to this project will be documented in this file.
 - Pushed Request, Vendor, Decision, and Notice schemas and reloaded the data gateway (2026-09-13)
 - Wired Next.js hosted login and callback from live CLI values; demo role switcher stays as the desk fallback (2026-09-13)
 - Published the desk to GitHub at noor-selise/BashaCare on main and dev (2026-09-13)
+- Restricted the OIDC callback to https://dbsblo.slsblx.com/login/callback and proxy local HTTPS on that host to port 3000 (2026-09-13)
