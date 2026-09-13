@@ -30,3 +30,4 @@ All changes to this project will be documented in this file.
 - Add admin, resident, staff, committee, and vendor IAM roles plus desk users; seed building records on first admin login (2026-09-13)
 - Ignore html/body attribute drift from browser extensions during hydration (2026-09-13)
 - Send a signed-in user to their role desk instead of the landing page; Sign out waits for IAM logout (2026-09-13)
+- Redeployed branch `dev` (build `b7fe39df-2909-423c-ba4a-7a3b6efeb35c`) to https://dbsblo.slsblx.com (2026-09-13)
