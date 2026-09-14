@@ -949,6 +949,8 @@ git commit -m "feat(blocks-iam): add invitePerson and listAccessStatus"
 
 **Files:**
 - Modify: `src/lib/store.tsx`
+- Modify: `src/app/resident/requests/[id]/page.tsx`
+- Modify: `src/app/staff/requests/[id]/page.tsx`
 
 **Interfaces:**
 - Consumes: `demoRoleFromEmail`, `findPerson` (Task 3); `addFlat`, `saveBuildingInfo` (Task 5); `invitePerson` (Task 6); `BuildingInfo`, `Flat`, `Person` (Task 1)
@@ -1118,15 +1120,67 @@ export const useSessionActor = () => {
 }
 ```
 
-- [ ] **Step 7: Type-check**
+- [ ] **Step 7: Fix the two other `findPerson` call sites**
+
+Task 3 changed `findPerson`'s signature to `findPerson(id: string, people: Person[])`. Two files outside `store.tsx` also call it with one argument, to resolve a timeline event's actor name for display — found by `npx tsc --noEmit` after Task 3 landed (these weren't in the original file list; both need `people` from `useBuilding()`, which only exists as of this task).
+
+In `src/app/resident/requests/[id]/page.tsx`, change:
+
+```ts
+  const { visibleRequests, verify, rejectVerify } = useBuilding()
+```
+
+to:
+
+```ts
+  const { visibleRequests, verify, rejectVerify, people } = useBuilding()
+```
+
+and change the timeline line:
+
+```tsx
+                {findPerson(event.actorId).name}: {event.label}
+```
+
+to:
+
+```tsx
+                {findPerson(event.actorId, people).name}: {event.label}
+```
+
+In `src/app/staff/requests/[id]/page.tsx`, change:
+
+```ts
+  const { requests, vendors, acknowledge, assignVendor, markDone } = useBuilding()
+```
+
+to:
+
+```ts
+  const { requests, vendors, acknowledge, assignVendor, markDone, people } = useBuilding()
+```
+
+and change the timeline line:
+
+```tsx
+                  {formatWhen(event.at)} · {findPerson(event.actorId).name}: {event.label}
+```
+
+to:
+
+```tsx
+                  {formatWhen(event.at)} · {findPerson(event.actorId, people).name}: {event.label}
+```
+
+- [ ] **Step 8: Type-check**
 
 Run: `npx tsc --noEmit`
-Expected: no errors anywhere in `src/lib/store.tsx`. Any remaining errors should only be in files not yet touched (the registry UI, Task 8).
+Expected: no errors anywhere in `src/lib/store.tsx`, `src/app/resident/requests/[id]/page.tsx`, or `src/app/staff/requests/[id]/page.tsx`. Any remaining errors should only be in files not yet touched (the registry UI, Task 8).
 
-- [ ] **Step 8: Commit**
+- [ ] **Step 9: Commit**
 
 ```bash
-git add src/lib/store.tsx
+git add src/lib/store.tsx src/app/resident/requests/[id]/page.tsx src/app/staff/requests/[id]/page.tsx
 git commit -m "feat(store): load Building/Flat/Person state, add registration actions"
 ```
 
