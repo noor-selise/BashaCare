@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/toast"
 import type { Vendor } from "@/types"
 
 export const VendorsPanel = ({
@@ -11,22 +12,22 @@ export const VendorsPanel = ({
   vendors: Vendor[]
   onAdd: (input: { name: string; trade: string }) => Promise<void>
 }) => {
+  const toast = useToast()
   const [name, setName] = useState("")
   const [trade, setTrade] = useState("")
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     if (!name.trim() || !trade.trim()) return
     setSaving(true)
-    setError(null)
     try {
       await onAdd({ name: name.trim(), trade: trade.trim() })
+      toast.success(`Vendor ${name.trim()} added.`)
       setName("")
       setTrade("")
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not add the vendor.")
+      toast.error(caught instanceof Error ? caught.message : "Could not add the vendor.")
     } finally {
       setSaving(false)
     }
@@ -69,14 +70,6 @@ export const VendorsPanel = ({
           {saving ? "Adding…" : "Add vendor"}
         </Button>
       </form>
-      {error ? (
-        <p
-          className="mt-4 border border-terracotta bg-terracotta-wash px-4 py-3 text-sm text-terracotta-deep"
-          role="alert"
-        >
-          {error}
-        </p>
-      ) : null}
     </section>
   )
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from "react"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/toast"
 import { listAccessStatus } from "@/lib/blocks/registry"
 import type { Flat, Person, Role, Vendor } from "@/types"
 
@@ -24,14 +25,27 @@ export const PeoplePanel = ({
     vendorId?: string
   }) => Promise<void>
 }) => {
+  const toast = useToast()
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [role, setRole] = useState<Exclude<Role, "admin">>("resident")
   const [flatId, setFlatId] = useState("")
   const [vendorId, setVendorId] = useState("")
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState<Record<string, "pending" | "active" | "unknown">>({})
+
+  const statusLabel = (value: "pending" | "active" | "unknown" | undefined) => {
+    switch (value) {
+      case "active":
+        return "Active"
+      case "pending":
+        return "Pending"
+      case "unknown":
+        return "Not invited"
+      default:
+        return "…"
+    }
+  }
 
   useEffect(() => {
     let cancelled = false
@@ -47,7 +61,6 @@ export const PeoplePanel = ({
     event.preventDefault()
     if (!name.trim() || !email.trim()) return
     setSaving(true)
-    setError(null)
     try {
       await onInvite({
         name: name.trim(),
@@ -56,10 +69,11 @@ export const PeoplePanel = ({
         flatId: role === "resident" ? flatId || undefined : undefined,
         vendorId: role === "vendor" ? vendorId || undefined : undefined
       })
+      toast.success(`Invited ${name.trim()}.`)
       setName("")
       setEmail("")
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "Could not invite this person.")
+      toast.error(caught instanceof Error ? caught.message : "Could not invite this person.")
     } finally {
       setSaving(false)
     }
@@ -75,7 +89,7 @@ export const PeoplePanel = ({
               {person.name} <span className="text-ink-faint">— {person.title}</span>
             </span>
             <span className="text-[11px] uppercase tracking-[0.08em] text-ink-faint">
-              {status[person.email] ?? "…"}
+              {statusLabel(status[person.email])}
             </span>
           </li>
         ))}
@@ -155,14 +169,6 @@ export const PeoplePanel = ({
             </label>
           ) : null}
         </div>
-        {error ? (
-          <p
-            className="border border-terracotta bg-terracotta-wash px-4 py-3 text-sm text-terracotta-deep"
-            role="alert"
-          >
-            {error}
-          </p>
-        ) : null}
         <Button type="submit" disabled={saving}>
           {saving ? "Inviting…" : "Invite person"}
         </Button>

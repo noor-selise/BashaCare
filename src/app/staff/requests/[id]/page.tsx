@@ -10,6 +10,7 @@ import { RequestContext } from "@/components/requests/request-context"
 import { StatusRail } from "@/components/requests/status-rail"
 import { AiPanel } from "@/components/triage/ai-panel"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/toast"
 import { findPerson } from "@/data/directory"
 import { formatWhen, statusLabel, urgencyLabel } from "@/lib/format"
 import { formatTaka } from "@/lib/money"
@@ -20,6 +21,7 @@ const StaffRequestPage = () => {
   const { id } = useParams<{ id: string }>()
   const { requests, vendors, acknowledge, assignVendor, markDone, people } = useBuilding()
   const actor = useSessionActor()
+  const toast = useToast()
   const request = requests.find((item) => item.id === id)
   const [afterEvidence, setAfterEvidence] = useState<Evidence | null>(null)
   const [cost, setCost] = useState("")
@@ -27,13 +29,17 @@ const StaffRequestPage = () => {
   const handleAssign = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const vendorId = new FormData(event.currentTarget).get("vendorId")
-    if (typeof vendorId === "string") assignVendor(id, vendorId)
+    if (typeof vendorId !== "string") return
+    assignVendor(id, vendorId)
+    const vendorName = vendors.find((item) => item.id === vendorId)?.name ?? "vendor"
+    toast.success(`Assigned to ${vendorName}.`)
   }
 
   const handleDone = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const parsedCost = Number(cost || 0)
     markDone(id, afterEvidence ?? undefined, parsedCost || undefined)
+    toast.success("Marked done — waiting for resident to verify.")
   }
 
   const afterTone: Evidence["tone"] =
@@ -82,7 +88,13 @@ const StaffRequestPage = () => {
               <p className="font-mono">{formatTaka(request.cost)}</p>
             ) : null}
             {request.status === "submitted" ? (
-              <Button variant="danger" onClick={() => acknowledge(request.id)}>
+              <Button
+                variant="danger"
+                onClick={() => {
+                  acknowledge(request.id)
+                  toast.success("Request acknowledged.")
+                }}
+              >
                 Acknowledge now
               </Button>
             ) : null}

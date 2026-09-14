@@ -7,6 +7,7 @@ import { EvidenceStrip } from "@/components/requests/evidence-strip"
 import { RequestContext } from "@/components/requests/request-context"
 import { StatusRail } from "@/components/requests/status-rail"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/toast"
 import { formatWhen, statusLabel } from "@/lib/format"
 import { findPerson } from "@/data/directory"
 import { useBuilding } from "@/lib/store"
@@ -14,6 +15,7 @@ import { useBuilding } from "@/lib/store"
 const ResidentRequestPage = () => {
   const { id } = useParams<{ id: string }>()
   const { visibleRequests, verify, rejectVerify, people } = useBuilding()
+  const toast = useToast()
   const request = visibleRequests().find((item) => item.id === id)
 
   return (
@@ -38,8 +40,21 @@ const ResidentRequestPage = () => {
           {request.status === "awaiting_verification" ? (
             <div className="flex flex-wrap gap-3 bg-garden-wash p-4">
               <p className="w-full">Staff say the work is done. Was it actually done?</p>
-              <Button onClick={() => verify(request.id)}>Verify work</Button>
-              <Button variant="ghost" onClick={() => rejectVerify(request.id)}>
+              <Button
+                onClick={() => {
+                  verify(request.id)
+                  toast.success("Verified — request closed.")
+                }}
+              >
+                Verify work
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  rejectVerify(request.id)
+                  toast.info("Sent back — staff will follow up.")
+                }}
+              >
                 Not done
               </Button>
             </div>

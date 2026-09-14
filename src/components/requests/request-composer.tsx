@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { useMemo, useState, type FormEvent } from "react"
 import { EvidenceUpload } from "@/components/requests/evidence-upload"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/toast"
 import { fadeRise } from "@/lib/motion"
 import { useBuilding } from "@/lib/store"
 import type { Evidence } from "@/types"
@@ -14,6 +15,7 @@ const nextDraftId = () => `req-${Math.random().toString(36).slice(2, 8)}`
 export const RequestComposer = () => {
   const router = useRouter()
   const { submitRequest } = useBuilding()
+  const toast = useToast()
   const [message, setMessage] = useState("")
   const [draftId] = useState(nextDraftId)
   const [beforeEvidence, setBeforeEvidence] = useState<Evidence | null>(null)
@@ -35,6 +37,7 @@ export const RequestComposer = () => {
       message: message.trim(),
       evidence: beforeEvidence ? [beforeEvidence] : undefined
     })
+    toast.success("Request submitted.")
     router.push(`/resident/requests/${id}`)
   }
 

@@ -3,6 +3,7 @@
 import { useEffect, useState, type FormEvent } from "react"
 import { ProfilePhoto } from "@/components/account/profile-photo"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/toast"
 import { findVendor } from "@/data/directory"
 import { useAuth } from "@/lib/blocks/auth-context"
 import { isBlocksConfigured } from "@/lib/blocks/client"
@@ -32,13 +33,12 @@ export const ProfileForm = ({ vendors }: { vendors: Vendor[] }) => {
   const actor = useSessionActor()
   const { updateProfile } = useBuilding()
   const { claims } = useAuth()
+  const toast = useToast()
   const [name, setName] = useState("")
   const [title, setTitle] = useState("")
   const [photoFileId, setPhotoFileId] = useState<string | undefined>()
   const [photoMimeType, setPhotoMimeType] = useState<string | undefined>()
   const [saving, setSaving] = useState(false)
-  const [error, setError] = useState<string | null>(null)
-  const [saved, setSaved] = useState(false)
 
   useEffect(() => {
     if (!actor) return
@@ -58,15 +58,12 @@ export const ProfileForm = ({ vendors }: { vendors: Vendor[] }) => {
   const handlePhotoUploaded = (fileId: string, mimeType: string) => {
     setPhotoFileId(fileId)
     setPhotoMimeType(mimeType)
-    setSaved(false)
   }
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     if (!canSave) return
     setSaving(true)
-    setError(null)
-    setSaved(false)
     try {
       await updateProfile({
         name: name.trim(),
@@ -74,9 +71,9 @@ export const ProfileForm = ({ vendors }: { vendors: Vendor[] }) => {
         photoFileId,
         photoMimeType
       })
-      setSaved(true)
+      toast.success("Profile saved.")
     } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Could not save profile.")
+      toast.error(saveError instanceof Error ? saveError.message : "Could not save profile.")
     } finally {
       setSaving(false)
     }
@@ -103,10 +100,7 @@ export const ProfileForm = ({ vendors }: { vendors: Vendor[] }) => {
           id="profile-name"
           required
           value={name}
-          onChange={(event) => {
-            setName(event.target.value)
-            setSaved(false)
-          }}
+          onChange={(event) => setName(event.target.value)}
           className="mt-2 min-h-11 w-full border border-hairline bg-surface-2 px-3 text-[16px]"
           autoComplete="name"
         />
@@ -119,10 +113,7 @@ export const ProfileForm = ({ vendors }: { vendors: Vendor[] }) => {
           id="profile-title"
           required
           value={title}
-          onChange={(event) => {
-            setTitle(event.target.value)
-            setSaved(false)
-          }}
+          onChange={(event) => setTitle(event.target.value)}
           placeholder={titlePlaceholder(actor.role)}
           className="mt-2 min-h-11 w-full border border-hairline bg-surface-2 px-3 text-[16px]"
         />
@@ -153,19 +144,9 @@ export const ProfileForm = ({ vendors }: { vendors: Vendor[] }) => {
         <Button type="submit" disabled={saving || !canSave}>
           {saving ? "Saving…" : "Save profile"}
         </Button>
-        {saved ? (
-          <p role="status" className="text-sm text-garden">
-            Profile saved.
-          </p>
-        ) : null}
         {photoRequired && !hasPhoto ? (
           <p role="status" className="text-sm text-ink-soft">
             Upload a profile photo to save.
-          </p>
-        ) : null}
-        {error ? (
-          <p role="status" className="text-sm text-emergency">
-            {error}
           </p>
         ) : null}
       </div>

@@ -9,12 +9,14 @@ import { EvidenceUpload } from "@/components/requests/evidence-upload"
 import { RequestContext } from "@/components/requests/request-context"
 import { StatusRail } from "@/components/requests/status-rail"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/toast"
 import { useBuilding } from "@/lib/store"
 import type { Evidence } from "@/types"
 
 const VendorJobPage = () => {
   const { id } = useParams<{ id: string }>()
   const { visibleRequests, markDone, people } = useBuilding()
+  const toast = useToast()
   const job = visibleRequests().find((item) => item.id === id)
   const [afterEvidence, setAfterEvidence] = useState<Evidence | null>(null)
 
@@ -48,7 +50,12 @@ const VendorJobPage = () => {
                 buttonLabel="Attach after photo"
                 onUploaded={setAfterEvidence}
               />
-              <Button onClick={() => markDone(job.id, afterEvidence ?? undefined)}>
+              <Button
+                onClick={() => {
+                  markDone(job.id, afterEvidence ?? undefined)
+                  toast.success("Marked done — waiting for resident to verify.")
+                }}
+              >
                 Mark done — wait for verify
               </Button>
             </div>

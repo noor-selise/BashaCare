@@ -3,6 +3,7 @@
 import { motion } from "framer-motion"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/toast"
 import { categoryLabel, urgencyLabel } from "@/lib/format"
 import { fadeRise } from "@/lib/motion"
 import { useBuilding } from "@/lib/store"
@@ -10,13 +11,16 @@ import type { RequestRecord, Urgency } from "@/types"
 
 export const AiPanel = ({ request }: { request: RequestRecord }) => {
   const { applyAi } = useBuilding()
+  const toast = useToast()
   const [urgency, setUrgency] = useState<Urgency>(request.ai?.urgency ?? request.urgency)
   const [reason, setReason] = useState("Intermittent jam is urgent. Shaft leak is the emergency.")
 
   if (!request.ai) return null
 
   const handleConfirm = () => {
-    applyAi(request.id, urgency, urgency === request.ai?.urgency ? undefined : reason)
+    const overridden = urgency !== request.ai?.urgency
+    applyAi(request.id, urgency, overridden ? reason : undefined)
+    toast.success(overridden ? "AI urgency overridden." : "AI suggestion confirmed.")
   }
 
   return (
