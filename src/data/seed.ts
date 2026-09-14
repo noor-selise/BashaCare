@@ -1,4 +1,4 @@
-import type { Decision, Notice, RequestRecord } from "@/types"
+import type { BuildingInfo, Decision, Flat, Notice, Person, RequestRecord, Role } from "@/types"
 
 const pumpCosts = [6000, 6500, 7000, 5500, 8000, 5500]
 
@@ -141,4 +141,70 @@ export const seedNotices: Notice[] = [
     read: false
   }
 ]
+
+export const seedCast: (Person & { role: Role })[] = [
+  { id: "noor@yopmail.com", email: "noor@yopmail.com", name: "Noor Mohammad", role: "admin", title: "Admin" },
+  {
+    id: "nusrat@yopmail.com",
+    email: "nusrat@yopmail.com",
+    name: "Nusrat Rahman",
+    role: "resident",
+    flatId: "7-B",
+    title: "Flat 7-B"
+  },
+  {
+    id: "karim@yopmail.com",
+    email: "karim@yopmail.com",
+    name: "Karim Hossain",
+    role: "resident",
+    flatId: "10-A",
+    title: "Flat 10-A"
+  },
+  { id: "hasan@yopmail.com", email: "hasan@yopmail.com", name: "Hasan Mia", role: "staff", title: "Caretaker" },
+  {
+    id: "rina@yopmail.com",
+    email: "rina@yopmail.com",
+    name: "Rina Chowdhury",
+    role: "committee",
+    title: "Treasurer"
+  },
+  {
+    id: "rafiq@yopmail.com",
+    email: "rafiq@yopmail.com",
+    name: "Rafiq Uddin",
+    role: "vendor",
+    vendorId: "metro-lift",
+    title: "Metro Lift AMC"
+  },
+  {
+    id: "rahman@yopmail.com",
+    email: "rahman@yopmail.com",
+    name: "Abdur Rahman",
+    role: "vendor",
+    vendorId: "rahman-pump",
+    title: "Rahman Pump Service"
+  }
+]
+
+export const seedPeople: Person[] = seedCast.map((item) => ({
+  id: item.id,
+  email: item.email,
+  name: item.name,
+  title: item.title,
+  flatId: item.flatId,
+  vendorId: item.vendorId
+}))
+
+export const seedFlats: Flat[] = [
+  { id: "7-B", label: "7-B", floor: 7, status: "occupied" },
+  { id: "10-A", label: "10-A", floor: 10, status: "occupied" }
+]
+
+export const seedBuildingInfo: BuildingInfo = {
+  name: "Uttara Heights",
+  addressLine: "House 18, Road 7, Uttara",
+  storeys: 12,
+  flatCount: 48,
+  fee: 2500
+}
 
