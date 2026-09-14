@@ -67,7 +67,7 @@ Hosted login: `https://dbsblo.slsblx.com`
 
 | Email | Role | Notes |
 | --- | --- | --- |
-| `noor.mohammad@selisegroup.com` | admin | Live tenant admin |
+| `noor@yopmail.com` | admin | Live tenant admin |
 | `nusrat@yopmail.com` | resident | Flat 7-B |
 | `karim@yopmail.com` | resident | Flat 10-A · seeded emergency `req-10a-shaft` |
 | `hasan@yopmail.com` | staff | Caretaker |
