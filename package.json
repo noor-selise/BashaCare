@@ -10,7 +10,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
-    "check:seed": "npx tsx src/data/seed-check.ts"
+    "check:seed": "npx tsx src/data/seed-check.ts",
+    "check:roster": "npx tsx src/features/building/roster-check.ts"
   },
   "dependencies": {
     "@seliseblocks/client": "latest",
