@@ -50,7 +50,7 @@ export const FlatsPanel = ({
         ))}
       </motion.ul>
       <form onSubmit={(event) => void handleSubmit(event)} className="mt-4 flex flex-wrap items-end gap-3">
-        <label className="block" htmlFor="flat-label">
+        <label className="block w-full sm:w-32" htmlFor="flat-label">
           <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint">Label</span>
           <input
             id="flat-label"
@@ -58,10 +58,10 @@ export const FlatsPanel = ({
             value={label}
             onChange={(event) => setLabel(event.target.value)}
             placeholder="12-C"
-            className="mt-2 min-h-11 w-32 border border-hairline bg-surface-2 px-3 text-[16px]"
+            className="mt-2 min-h-11 w-full border border-hairline bg-surface-2 px-3 text-[16px]"
           />
         </label>
-        <label className="block" htmlFor="flat-floor">
+        <label className="block w-full sm:w-24" htmlFor="flat-floor">
           <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint">Floor</span>
           <input
             id="flat-floor"
@@ -69,7 +69,7 @@ export const FlatsPanel = ({
             min={0}
             value={floor}
             onChange={(event) => setFloor(event.target.value)}
-            className="mt-2 min-h-11 w-24 border border-hairline bg-surface-2 px-3 text-[16px]"
+            className="mt-2 min-h-11 w-full border border-hairline bg-surface-2 px-3 text-[16px]"
           />
         </label>
         <Button type="submit" disabled={saving}>

@@ -82,17 +82,17 @@ export const PeoplePanel = ({
       </ul>
       <form onSubmit={(event) => void handleSubmit(event)} className="mt-4 space-y-3">
         <div className="flex flex-wrap gap-3">
-          <label className="block" htmlFor="person-name">
+          <label className="block w-full sm:w-48" htmlFor="person-name">
             <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint">Name</span>
             <input
               id="person-name"
               required
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className="mt-2 min-h-11 w-48 border border-hairline bg-surface-2 px-3 text-[16px]"
+              className="mt-2 min-h-11 w-full border border-hairline bg-surface-2 px-3 text-[16px]"
             />
           </label>
-          <label className="block" htmlFor="person-email">
+          <label className="block w-full sm:w-56" htmlFor="person-email">
             <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint">Email</span>
             <input
               id="person-email"
@@ -100,16 +100,16 @@ export const PeoplePanel = ({
               required
               value={email}
               onChange={(event) => setEmail(event.target.value)}
-              className="mt-2 min-h-11 w-56 border border-hairline bg-surface-2 px-3 text-[16px]"
+              className="mt-2 min-h-11 w-full border border-hairline bg-surface-2 px-3 text-[16px]"
             />
           </label>
-          <label className="block" htmlFor="person-role">
+          <label className="block w-full sm:w-auto" htmlFor="person-role">
             <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint">Role</span>
             <select
               id="person-role"
               value={role}
               onChange={(event) => setRole(event.target.value as Exclude<Role, "admin">)}
-              className="mt-2 block min-h-11 border border-hairline bg-surface px-3 text-[16px]"
+              className="mt-2 block min-h-11 w-full border border-hairline bg-surface px-3 text-[16px] sm:w-auto"
             >
               {INVITABLE_ROLES.map((item) => (
                 <option key={item} value={item}>
@@ -119,13 +119,13 @@ export const PeoplePanel = ({
             </select>
           </label>
           {role === "resident" ? (
-            <label className="block" htmlFor="person-flat">
+            <label className="block w-full sm:w-auto" htmlFor="person-flat">
               <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint">Flat</span>
               <select
                 id="person-flat"
                 value={flatId}
                 onChange={(event) => setFlatId(event.target.value)}
-                className="mt-2 block min-h-11 border border-hairline bg-surface px-3 text-[16px]"
+                className="mt-2 block min-h-11 w-full border border-hairline bg-surface px-3 text-[16px] sm:w-auto"
               >
                 <option value="">Select a flat</option>
                 {flats.map((flat) => (
@@ -137,13 +137,13 @@ export const PeoplePanel = ({
             </label>
           ) : null}
           {role === "vendor" ? (
-            <label className="block" htmlFor="person-vendor">
+            <label className="block w-full sm:w-auto" htmlFor="person-vendor">
               <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint">Vendor</span>
               <select
                 id="person-vendor"
                 value={vendorId}
                 onChange={(event) => setVendorId(event.target.value)}
-                className="mt-2 block min-h-11 border border-hairline bg-surface px-3 text-[16px]"
+                className="mt-2 block min-h-11 w-full border border-hairline bg-surface px-3 text-[16px] sm:w-auto"
               >
                 <option value="">Select a vendor</option>
                 {vendors.map((vendor) => (

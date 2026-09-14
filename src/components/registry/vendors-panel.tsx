@@ -44,17 +44,17 @@ export const VendorsPanel = ({
         ))}
       </ul>
       <form onSubmit={(event) => void handleSubmit(event)} className="mt-4 flex flex-wrap items-end gap-3">
-        <label className="block" htmlFor="vendor-name">
+        <label className="block w-full sm:w-48" htmlFor="vendor-name">
           <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint">Name</span>
           <input
             id="vendor-name"
             required
             value={name}
             onChange={(event) => setName(event.target.value)}
-            className="mt-2 min-h-11 w-48 border border-hairline bg-surface-2 px-3 text-[16px]"
+            className="mt-2 min-h-11 w-full border border-hairline bg-surface-2 px-3 text-[16px]"
           />
         </label>
-        <label className="block" htmlFor="vendor-trade">
+        <label className="block w-full sm:w-40" htmlFor="vendor-trade">
           <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint">Trade</span>
           <input
             id="vendor-trade"
@@ -62,7 +62,7 @@ export const VendorsPanel = ({
             value={trade}
             onChange={(event) => setTrade(event.target.value)}
             placeholder="Electrical"
-            className="mt-2 min-h-11 w-40 border border-hairline bg-surface-2 px-3 text-[16px]"
+            className="mt-2 min-h-11 w-full border border-hairline bg-surface-2 px-3 text-[16px]"
           />
         </label>
         <Button type="submit" disabled={saving}>
