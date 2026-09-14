@@ -11,7 +11,8 @@
     "start": "next start",
     "lint": "eslint",
     "check:seed": "npx tsx src/data/seed-check.ts",
-    "check:roster": "npx tsx src/features/building/roster-check.ts"
+    "check:roster": "npx tsx src/features/building/roster-check.ts",
+    "check:highlight": "npx tsx src/lib/request-highlight-check.ts"
   },
   "dependencies": {
     "@seliseblocks/client": "latest",

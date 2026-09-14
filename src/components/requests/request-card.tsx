@@ -4,6 +4,7 @@ import { formatAge, statusLabel, urgencyLabel } from "@/lib/format"
 import { formatTaka } from "@/lib/money"
 import { fadeRise } from "@/lib/motion"
 import { cn } from "@/lib/cn"
+import { isNewRequest } from "@/lib/request-highlight"
 import type { RequestRecord } from "@/types"
 
 type RequestCardProps = {
@@ -14,6 +15,7 @@ type RequestCardProps = {
 
 export const RequestCard = ({ request, href, showMoney }: RequestCardProps) => {
   const emergency = request.urgency === "emergency" && request.status !== "verified_closed"
+  const isNew = isNewRequest(request)
   const reduceMotion = useReducedMotion()
 
   return (
@@ -27,7 +29,11 @@ export const RequestCard = ({ request, href, showMoney }: RequestCardProps) => {
       }
       className={cn(
         "rounded-[12px] border bg-surface p-4 transition-shadow hover:shadow-[var(--shadow-lg)]",
-        emergency ? "border-terracotta bg-terracotta-wash" : "border-hairline"
+        emergency
+          ? "border-terracotta bg-terracotta-wash"
+          : isNew
+            ? "border-courtyard bg-courtyard-soft"
+            : "border-hairline"
       )}
     >
       <Link
@@ -36,7 +42,14 @@ export const RequestCard = ({ request, href, showMoney }: RequestCardProps) => {
         aria-label={`${request.flatId} ${urgencyLabel(request.urgency)} ${statusLabel(request.status)}`}
       >
         <div className="flex flex-wrap items-baseline justify-between gap-2">
-          <p className="font-display text-lg">Flat {request.flatId}</p>
+          <p className="font-display text-lg">
+            Flat {request.flatId}
+            {isNew && !emergency ? (
+              <span className="ml-2 align-middle text-[11px] font-semibold uppercase tracking-[0.08em] text-courtyard">
+                New
+              </span>
+            ) : null}
+          </p>
           <p className="text-[13px] text-ink-faint">{formatAge(request.createdAt)}</p>
         </div>
         <p className="mt-2 font-bengali leading-relaxed text-ink-soft line-clamp-2">

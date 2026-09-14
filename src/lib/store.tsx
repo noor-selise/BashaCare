@@ -29,6 +29,7 @@ import {
 import { saveOwnProfile, type ProfilePatch } from "@/lib/blocks/profile"
 import { invitePerson as invitePersonRecord, type InviteInput } from "@/lib/blocks/registry"
 import { markRequestNoticesRead, noticeDraft } from "@/lib/notices"
+import { sameActorId } from "@/lib/request-highlight"
 import type {
   BuildingInfo,
   Decision,
@@ -196,11 +197,19 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
 
     const visibleRequests = () => {
       if (!actor || !state.session) return []
+      const actorKey = state.session.actorId
       if (state.session.role === "resident") {
-        return state.requests.filter((item) => item.residentId === actor.id)
+        return state.requests.filter(
+          (item) =>
+            sameActorId(item.residentId, actorKey) ||
+            sameActorId(item.residentId, actor.id) ||
+            sameActorId(item.residentId, actor.email)
+        )
       }
       if (state.session.role === "vendor") {
-        return state.requests.filter((item) => item.vendorId === actor.vendorId)
+        return state.requests.filter(
+          (item) => item.vendorId && actor.vendorId && item.vendorId === actor.vendorId
+        )
       }
       return state.requests
     }
@@ -225,7 +234,7 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
         const record: RequestRecord = {
           id: draftId,
           flatId: actor?.flatId ?? "unknown",
-          residentId: actor?.id ?? "unknown",
+          residentId: (state.session?.actorId ?? actor?.email ?? actor?.id ?? "unknown").trim().toLowerCase(),
           message,
           category: suggestion.category,
           urgency: suggestion.urgency,

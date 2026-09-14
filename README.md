@@ -108,6 +108,8 @@ Hosted login: `https://dbsblo.slsblx.com`
 
 Demo emails need IAM role + `Person` row (Registration or admin seed on first login).
 
+**Password (all demo accounts above):** `Pass@123`
+
 ## Routes
 
 | Path | Who can open |
@@ -120,17 +122,34 @@ Demo emails need IAM role + `Person` row (Registration or admin seed on first lo
 | `/vendor`, `/vendor/jobs/[id]` | Vendor |
 | `/inbox`, `/account` | All desk roles |
 
-## Manual testing
+## Manual testing (QA checklist)
 
-Sign out between personas. Full scripted cases are in **BRD §7 (FR-7)**.
+Sign out between each person. Password for every demo account: **`Pass@123`**.
 
-1. **Routine lift (7-B)** — Nusrat submits → Hasan triages and assigns → Rafiq uploads evidence → Hasan marks done → Nusrat verifies → Rina sees cost on desk.
-2. **Emergency shaft (10-A)** — Karim’s seeded request → Hasan acknowledges first → red banner stays until handled.
-3. **Pump story** — Rina’s desk shows six Rahman Pump repairs (৳38,500) and the replace decision.
-4. **Registration** — Admin or Rina edits building, adds a flat, invites a person.
-5. **Account** — Upload profile photo (required on hosted tenant), check `/inbox` lifecycle links.
+**Visual cues:** new submitted requests use **teal/courtyard** background + **New** badge. Unread alerts use the same teal wash + left bar.
 
-**Pass:** role always visible in header; wrong role redirects home; resident must verify before close; emergency visually distinct on staff board.
+### Karim → close (full flow)
+
+| Step | Login | Do | Pass if |
+| --- | --- | --- | --- |
+| 1 | `karim@yopmail.com` | `/resident/new` → message → Submit | Lands on `/resident/requests/{uuid}` (not `req-…`) |
+| 2 | Karim | Back to `/resident` | Card shows **New** + teal background |
+| 3 | `hasan@yopmail.com` | `/staff` | Same request under board with **New** styling |
+| 4 | Hasan | Open request → **Acknowledge now** | Status Acknowledged |
+| 5 | Hasan | **Assign** vendor (Metro Lift for lift, Uttara Electric for water) | Vendor gets alert |
+| 6 | `rafiq@yopmail.com` | `/vendor` → open job | Job visible |
+| 7 | Hasan or Rafiq | **Mark done** + cost | Status Awaiting verification |
+| 8 | Karim | `/inbox` → teal **New** alert → **Verify now** | Verify panel shows |
+| 9 | Karim | **Verify work** | Verified closed |
+| 10 | `rina@yopmail.com` | `/committee` | Cost on desk; **no Board** in nav |
+
+### Other FR-7 cases
+
+1. **Nusrat / 7-B lift** — same lifecycle with `nusrat@yopmail.com`.
+2. **Pump story** — Rina’s desk: six Rahman repairs · ৳38,500 + replace decision.
+3. **Registration** — Rina or admin edits building at `/committee/registry`.
+
+**Global pass:** role in header; wrong role redirected; resident cannot close without verify; emergency terracotta on staff board; committee has no Board link.
 
 ## Project structure
 

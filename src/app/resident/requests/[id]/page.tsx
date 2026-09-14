@@ -10,17 +10,28 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/toast"
 import { formatWhen, statusLabel } from "@/lib/format"
 import { findPerson } from "@/data/directory"
-import { useBuilding } from "@/lib/store"
+import { sameActorId } from "@/lib/request-highlight"
+import { useBuilding, useSessionActor } from "@/lib/store"
 
 const ResidentRequestPage = () => {
   const { id } = useParams<{ id: string }>()
-  const { visibleRequests, verify, rejectVerify, people } = useBuilding()
+  const { requests, verify, rejectVerify, people, session } = useBuilding()
+  const actor = useSessionActor()
   const toast = useToast()
-  const request = visibleRequests().find((item) => item.id === id)
+  const request = requests.find((item) => item.id === id)
+  const owned =
+    request &&
+    actor &&
+    session &&
+    (sameActorId(request.residentId, session.actorId) ||
+      sameActorId(request.residentId, actor.id) ||
+      sameActorId(request.residentId, actor.email))
 
   return (
     <AppShell allow={["resident"]}>
       {!request ? (
+        <p>Request not found.</p>
+      ) : !owned ? (
         <p>This request is not on your flat.</p>
       ) : (
         <article className="space-y-6">
@@ -31,7 +42,7 @@ const ResidentRequestPage = () => {
             <p className="text-[11px] uppercase tracking-[0.08em] text-ink-faint">
               {statusLabel(request.status)} · Flat {request.flatId}
             </p>
-            <h1 className="font-display text-[32px] leading-tight">Request {request.id}</h1>
+            <h1 className="font-display text-[32px] leading-tight">Flat {request.flatId}</h1>
           </header>
           <RequestContext request={request} people={people} />
           <StatusRail status={request.status} />

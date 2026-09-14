@@ -4,6 +4,7 @@ All changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Highlight new submitted requests and unread alerts in courtyard teal; fix resident ownership matching; add QA passwords to README (2026-09-14)
 - Redeployed branch `dev` (build `55634dfb-e536-4535-becb-2d050a5a2c0f`, commit `ae98587`) to https://dbsblo.slsblx.com and https://dbsblo-eleit.slsblx.com (2026-09-14)
 - Split committee from admin: treasurer gets Desk + Registration only; admin keeps Board; document full role matrix in README (2026-09-14)
 - Fix resident request detail after submit: wait for Blocks UUID before navigate so URL matches stored id (2026-09-14)
