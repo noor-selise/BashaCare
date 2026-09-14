@@ -12,7 +12,7 @@ import { useBuilding } from "@/lib/store"
 
 const ResidentRequestPage = () => {
   const { id } = useParams<{ id: string }>()
-  const { visibleRequests, verify, rejectVerify } = useBuilding()
+  const { visibleRequests, verify, rejectVerify, people } = useBuilding()
   const request = visibleRequests().find((item) => item.id === id)
 
   return (
@@ -47,7 +47,7 @@ const ResidentRequestPage = () => {
               <li key={event.id} className="text-sm text-ink-soft">
                 <span className="font-mono text-ink-faint">{formatWhen(event.at)}</span>
                 {" · "}
-                {findPerson(event.actorId).name}: {event.label}
+                {findPerson(event.actorId, people).name}: {event.label}
                 {event.detail ? ` — ${event.detail}` : ""}
               </li>
             ))}
