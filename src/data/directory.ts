@@ -59,10 +59,11 @@ export const roleSlugsFromUnknown = (value: unknown): string[] => {
 }
 
 export const deskRoleFromSlugs = (slugs: string[]): Role | null => {
-  if (slugs.includes("admin")) return "admin"
-  if (slugs.includes("committee")) return "committee"
-  if (slugs.includes("staff")) return "staff"
-  if (slugs.includes("vendor")) return "vendor"
-  if (slugs.includes("resident")) return "resident"
+  const normalized = slugs.map((slug) => slug.toLowerCase())
+  if (normalized.includes("admin")) return "admin"
+  if (normalized.includes("committee")) return "committee"
+  if (normalized.includes("staff")) return "staff"
+  if (normalized.includes("vendor")) return "vendor"
+  if (normalized.includes("resident")) return "resident"
   return null
 }

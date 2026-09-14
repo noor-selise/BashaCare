@@ -12,8 +12,8 @@ const RegistryPage = () => {
     useBuilding()
 
   return (
-    <AppShell allow={["committee"]}>
-      <h1 className="font-display text-[32px] leading-tight">Registry</h1>
+    <AppShell allow={["admin", "committee"]}>
+      <h1 className="font-display text-[32px] leading-tight">Registration</h1>
       <p className="mt-2 text-ink-soft">Register flats, invite people, and keep building details current.</p>
       <div className="mt-8 grid gap-6 lg:grid-cols-2">
         <BuildingPanel buildingInfo={buildingInfo} onSave={updateBuildingInfo} />

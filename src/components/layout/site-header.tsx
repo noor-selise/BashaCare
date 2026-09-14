@@ -9,6 +9,11 @@ import { useBuilding, useSessionActor } from "@/lib/store"
 import { cn } from "@/lib/cn"
 import type { Role } from "@/types"
 
+const navActive = (pathname: string, href: string) => {
+  if (href === "/committee") return pathname === "/committee"
+  return pathname === href || pathname.startsWith(`${href}/`)
+}
+
 const navFor = (role: Role) => {
   switch (role) {
     case "resident":
@@ -23,10 +28,17 @@ const navFor = (role: Role) => {
         { href: "/inbox", label: "Alerts" }
       ]
     case "admin":
+      return [
+        { href: "/committee", label: "Desk" },
+        { href: "/committee/registry", label: "Registration" },
+        { href: "/staff", label: "Board" },
+        { href: "/inbox", label: "Alerts" },
+        { href: "/account", label: "Account" }
+      ]
     case "committee":
       return [
         { href: "/committee", label: "Desk" },
-        { href: "/committee/registry", label: "Registry" },
+        { href: "/committee/registry", label: "Registration" },
         { href: "/staff", label: "Board" },
         { href: "/inbox", label: "Alerts" },
         { href: "/account", label: "Account" }
@@ -74,7 +86,7 @@ export const SiteHeader = () => {
         </div>
         <nav aria-label="Primary" className="flex flex-wrap items-center gap-1">
           {items.map((item) => {
-            const active = pathname === item.href
+            const active = navActive(pathname, item.href)
             return (
               <Link
                 key={item.href}

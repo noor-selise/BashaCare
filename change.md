@@ -4,6 +4,7 @@ All changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Show Registration in the admin and committee nav, label the registry route Registration, and redeploy dev so hosted builds pick up commit 6b60c14 (2026-09-14)
 - Fix building registration: read created row ids from the GraphQL envelope, seed each collection independently, keep seed people and flats as a baseline live rows add to, report failed writes in the registry panels, and require a Person row before opening a desk (2026-09-14)
 - Rebuild the signed-out landing as a civic notice board: courtyard stamp, building voice, stacked request/emergency/spend ledger, and an Enter the desk pass (by Noor, 2026-09-14)
 - Upgraded global `@seliseblocks/cli-os` from 0.3.3 to 0.5.0 (2026-09-13)
