@@ -1,15 +1,26 @@
 import Link from "next/link"
+import { BuildingRoster } from "@/components/building/building-roster"
 import { formatTaka } from "@/lib/money"
 import { openUrgents, vendorSpend } from "@/features/spend/rollups"
-import type { Decision, RequestRecord, Vendor } from "@/types"
+import type { BuildingInfo, Decision, Flat, RequestRecord, Role, Vendor } from "@/types"
 
 type CommitteeDeskProps = {
   requests: RequestRecord[]
   vendors: Vendor[]
   decisions: Decision[]
+  flats: Flat[]
+  buildingInfo: BuildingInfo | null
+  role: Role
 }
 
-export const CommitteeDesk = ({ requests, vendors, decisions }: CommitteeDeskProps) => {
+export const CommitteeDesk = ({
+  requests,
+  vendors,
+  decisions,
+  flats,
+  buildingInfo,
+  role
+}: CommitteeDeskProps) => {
   const urgentOpen = openUrgents(requests)
   const billed = vendorSpend(requests, vendors)
   const slow = billed[0]
@@ -61,6 +72,9 @@ export const CommitteeDesk = ({ requests, vendors, decisions }: CommitteeDeskPro
             ))}
           </ul>
         </section>
+      </div>
+      <div className="mt-10">
+        <BuildingRoster role={role} buildingInfo={buildingInfo} flats={flats} />
       </div>
       <section className="mt-10 bg-warning-wash p-5">
         <p className="text-[11px] uppercase tracking-[0.08em]">Replace recommendation</p>
