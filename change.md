@@ -4,6 +4,7 @@ All changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Document skip-Confirm-AI path and full request reference in MANUAL-QA.md (2026-09-15)
 - Lock AI triage panel after staff confirm or when request is closed; add MANUAL-QA.md checklist (2026-09-15)
 - Redeployed branch `dev` (build `6e7f596a-fa13-4918-b0da-5b98176a3c9f`, commit `97cd63e`) to https://dbsblo.slsblx.com (2026-09-15)
 - Redeployed branch `dev` (build `eec1674a-8b62-48e4-9d2b-41e20e8e0ef0`, commit `9fd81ba`) to https://dbsblo.slsblx.com and https://dbsblo-eleit.slsblx.com (2026-09-14)
