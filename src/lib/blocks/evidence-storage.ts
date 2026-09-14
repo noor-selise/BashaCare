@@ -41,11 +41,25 @@ const readDownloadUrl = (response: unknown): string | null => {
   return result.downloadUrl ?? result.url ?? result.data?.downloadUrl ?? result.data?.url ?? null
 }
 
+const storageErrorMessage = (caught: unknown, action: string): string => {
+  if (caught instanceof Error && caught.message.trim()) {
+    if (/403|forbidden|unauthorized|401/i.test(caught.message)) {
+      return `${action}: your account does not have file-storage access on this tenant. Try an admin account, or ask the tenant owner to grant storage permissions to your IAM role.`
+    }
+    return `${action}: ${caught.message}`
+  }
+  return `${action}: file storage is unavailable on this tenant.`
+}
+
 const findEvidenceDirectory = async (client: BlocksClient): Promise<string | null> => {
-  const listed = await client.data.objects.list({ parentDirectoryId: "root", limit: 100 })
-  const items = (listed as { items?: Array<{ id?: string; name?: string; type?: string }> }).items ?? []
-  const match = items.find((item) => item.type === "Directory" && item.name === EVIDENCE_DIR_NAME)
-  return match?.id ?? null
+  try {
+    const listed = await client.data.objects.list({ parentDirectoryId: "root", limit: 100 })
+    const items = (listed as { items?: Array<{ id?: string; name?: string; type?: string }> }).items ?? []
+    const match = items.find((item) => item.type === "Directory" && item.name === EVIDENCE_DIR_NAME)
+    return match?.id ?? null
+  } catch (caught) {
+    throw new Error(storageErrorMessage(caught, "Could not open evidence storage"))
+  }
 }
 
 const ensureEvidenceDirectory = async (client: BlocksClient): Promise<string> => {
@@ -57,11 +71,16 @@ const ensureEvidenceDirectory = async (client: BlocksClient): Promise<string> =>
     return existing
   }
 
-  const created = await client.data.directories.create({
-    name: EVIDENCE_DIR_NAME,
-    parentDirectoryId: "root",
-    allowedFileExtensions: ["jpg", "jpeg", "png", "webp", "gif"]
-  })
+  let created: unknown
+  try {
+    created = await client.data.directories.create({
+      name: EVIDENCE_DIR_NAME,
+      parentDirectoryId: "root",
+      allowedFileExtensions: ["jpg", "jpeg", "png", "webp", "gif"]
+    })
+  } catch (caught) {
+    throw new Error(storageErrorMessage(caught, "Could not create evidence storage folder"))
+  }
 
   const directoryId =
     (created as { id?: string; directoryId?: string; data?: { id?: string } }).id ??

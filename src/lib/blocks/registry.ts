@@ -40,6 +40,28 @@ export const invitePerson = async (input: InviteInput): Promise<Person> => {
   })
 }
 
+type IamUserRow = {
+  email?: string
+  active?: boolean
+  isActive?: boolean
+}
+
+const readIamUsers = (response: unknown): IamUserRow[] => {
+  const record = response as {
+    data?: IamUserRow[] | { items?: IamUserRow[] }
+    items?: IamUserRow[]
+  }
+  if (Array.isArray(record.data)) return record.data
+  if (record.data && Array.isArray(record.data.items)) return record.data.items
+  return record.items ?? []
+}
+
+const iamUserIsActive = (user: IamUserRow) => {
+  if (typeof user.active === "boolean") return user.active
+  if (typeof user.isActive === "boolean") return user.isActive
+  return false
+}
+
 export const listAccessStatus = async (
   emails: string[]
 ): Promise<Record<string, "pending" | "active" | "unknown">> => {
@@ -50,12 +72,11 @@ export const listAccessStatus = async (
   await Promise.all(
     emails.map(async (email) => {
       try {
-        const res = (await client.iam.users.list({ pageNo: 1, pageSize: 1, search: email })) as {
-          items?: { email?: string; isActive?: boolean }[]
-          data?: { items?: { email?: string; isActive?: boolean }[] }
-        }
-        const match = (res.data?.items ?? res.items ?? [])[0]
-        status[email] = match ? (match.isActive ? "active" : "pending") : "unknown"
+        const res = await client.iam.users.list({ pageNo: 1, pageSize: 1, search: email })
+        const match = readIamUsers(res).find(
+          (user) => user.email?.trim().toLowerCase() === email.trim().toLowerCase()
+        )
+        status[email] = match ? (iamUserIsActive(match) ? "active" : "pending") : "unknown"
       } catch {
         status[email] = "unknown"
       }
