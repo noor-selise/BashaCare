@@ -56,7 +56,7 @@ proxy.on("upgrade", (incoming, socket, head) => {
 
 proxy.on("error", (error) => {
   if (error.code === "EACCES") {
-    console.error(`Port ${listenPort} needs root. Re-run: sudo npm run proxy`)
+    console.error(`Port ${listenPort} needs privilege to serve https://${host}`)
     process.exit(1)
   }
   throw error

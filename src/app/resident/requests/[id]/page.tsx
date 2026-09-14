@@ -4,15 +4,18 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import { AppShell } from "@/components/layout/app-shell"
 import { EvidenceStrip } from "@/components/requests/evidence-strip"
+import { RequestContext } from "@/components/requests/request-context"
 import { StatusRail } from "@/components/requests/status-rail"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/toast"
 import { formatWhen, statusLabel } from "@/lib/format"
-import { findActor } from "@/data/seed"
+import { findPerson } from "@/data/directory"
 import { useBuilding } from "@/lib/store"
 
 const ResidentRequestPage = () => {
   const { id } = useParams<{ id: string }>()
-  const { visibleRequests, verify, rejectVerify } = useBuilding()
+  const { visibleRequests, verify, rejectVerify, people } = useBuilding()
+  const toast = useToast()
   const request = visibleRequests().find((item) => item.id === id)
 
   return (
@@ -30,14 +33,28 @@ const ResidentRequestPage = () => {
             </p>
             <h1 className="font-display text-[32px] leading-tight">Request {request.id}</h1>
           </header>
+          <RequestContext request={request} people={people} />
           <StatusRail status={request.status} />
           <p className="max-w-2xl font-bengali text-lg leading-relaxed">{request.message}</p>
           <EvidenceStrip items={request.evidence} />
           {request.status === "awaiting_verification" ? (
             <div className="flex flex-wrap gap-3 bg-garden-wash p-4">
               <p className="w-full">Staff say the work is done. Was it actually done?</p>
-              <Button onClick={() => verify(request.id)}>Verify work</Button>
-              <Button variant="ghost" onClick={() => rejectVerify(request.id)}>
+              <Button
+                onClick={() => {
+                  verify(request.id)
+                  toast.success("Verified — request closed.")
+                }}
+              >
+                Verify work
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => {
+                  rejectVerify(request.id)
+                  toast.info("Sent back — staff will follow up.")
+                }}
+              >
                 Not done
               </Button>
             </div>
@@ -47,7 +64,7 @@ const ResidentRequestPage = () => {
               <li key={event.id} className="text-sm text-ink-soft">
                 <span className="font-mono text-ink-faint">{formatWhen(event.at)}</span>
                 {" · "}
-                {findActor(event.actorId).name}: {event.label}
+                {findPerson(event.actorId, people).name}: {event.label}
                 {event.detail ? ` — ${event.detail}` : ""}
               </li>
             ))}

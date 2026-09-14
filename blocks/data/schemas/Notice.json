@@ -1,7 +1,5 @@
 {
-  "schemaName": "Notice",
   "collectionName": "blx_Notices",
-  "schemaType": 1,
   "fields": [
     {
       "name": "role",
@@ -9,7 +7,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Audience role or all"
+      "description": "Audience role or all",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "title",
@@ -17,7 +18,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Alert title"
+      "description": "Alert title",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "body",
@@ -25,7 +29,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Alert body"
+      "description": "Alert body",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "requestId",
@@ -33,7 +40,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Related request id"
+      "description": "Related request id",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "at",
@@ -41,7 +51,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "ISO notice timestamp"
+      "description": "ISO notice timestamp",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "read",
@@ -49,7 +62,12 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Whether the recipient has read it"
+      "description": "Whether the recipient has read it",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     }
-  ]
+  ],
+  "schemaName": "Notice",
+  "schemaType": 1
 }

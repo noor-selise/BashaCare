@@ -1,0 +1,86 @@
+"use client"
+
+import { motion } from "framer-motion"
+import { useState, type FormEvent } from "react"
+import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/toast"
+import { fadeRise, staggerContainer } from "@/lib/motion"
+import type { Flat } from "@/types"
+
+export const FlatsPanel = ({
+  flats,
+  onAdd
+}: {
+  flats: Flat[]
+  onAdd: (input: { label: string; floor: number }) => Promise<void>
+}) => {
+  const toast = useToast()
+  const [label, setLabel] = useState("")
+  const [floor, setFloor] = useState("")
+  const [saving, setSaving] = useState(false)
+
+  const handleSubmit = async (event: FormEvent) => {
+    event.preventDefault()
+    if (!label.trim()) return
+    const flatLabel = label.trim()
+    setSaving(true)
+    try {
+      await toast.promise(onAdd({ label: flatLabel, floor: Number(floor) || 0 }), {
+        loading: `Adding flat ${flatLabel}…`,
+        success: `Flat ${flatLabel} added.`,
+        error: (caught) => (caught instanceof Error ? caught.message : "Could not add the flat.")
+      })
+      setLabel("")
+      setFloor("")
+    } catch {
+      // toast.promise already reported the error
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <section className="border border-hairline bg-surface p-4 md:p-6">
+      <h2 className="font-display text-xl">Flats</h2>
+      <motion.ul variants={staggerContainer} initial="hidden" animate="visible" className="mt-4 space-y-2">
+        {flats.map((flat) => (
+          <motion.li
+            key={flat.id}
+            variants={fadeRise}
+            className="flex items-center justify-between border border-hairline bg-surface-2 px-3 py-2 text-sm"
+          >
+            <span>{flat.label}</span>
+            <span className="text-ink-faint">Floor {flat.floor}</span>
+          </motion.li>
+        ))}
+      </motion.ul>
+      <form onSubmit={(event) => void handleSubmit(event)} className="mt-4 flex flex-wrap items-end gap-3">
+        <label className="block w-full sm:w-32" htmlFor="flat-label">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint">Label</span>
+          <input
+            id="flat-label"
+            required
+            value={label}
+            onChange={(event) => setLabel(event.target.value)}
+            placeholder="12-C"
+            className="mt-2 min-h-11 w-full border border-hairline bg-surface-2 px-3 text-[16px]"
+          />
+        </label>
+        <label className="block w-full sm:w-24" htmlFor="flat-floor">
+          <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint">Floor</span>
+          <input
+            id="flat-floor"
+            type="number"
+            min={0}
+            value={floor}
+            onChange={(event) => setFloor(event.target.value)}
+            className="mt-2 min-h-11 w-full border border-hairline bg-surface-2 px-3 text-[16px]"
+          />
+        </label>
+        <Button type="submit" disabled={saving}>
+          {saving ? "Adding…" : "Add flat"}
+        </Button>
+      </form>
+    </section>
+  )
+}

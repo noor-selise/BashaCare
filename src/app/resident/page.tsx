@@ -1,17 +1,26 @@
 "use client"
 
 import Link from "next/link"
+import { BuildingRoster } from "@/components/building/building-roster"
 import { AppShell } from "@/components/layout/app-shell"
 import { RequestCard } from "@/components/requests/request-card"
+import { RequestList } from "@/components/requests/request-list"
 import { EmptyState } from "@/components/ui/empty-state"
+import { uniqueFlatIds, visibleFlats } from "@/features/building/roster"
 import { useBuilding, useSessionActor } from "@/lib/store"
 
 const ResidentHome = () => {
   const actor = useSessionActor()
-  const { visibleRequests } = useBuilding()
+  const { visibleRequests, flats, buildingInfo, session } = useBuilding()
   const mine = visibleRequests()
   const open = mine.filter((item) => item.status !== "verified_closed")
   const closed = mine.filter((item) => item.status === "verified_closed")
+  const roster = visibleFlats({
+    role: session?.role ?? "resident",
+    actorFlatId: actor?.flatId,
+    flats,
+    assignedFlatIds: uniqueFlatIds(mine)
+  })
 
   return (
     <AppShell allow={["resident"]}>
@@ -27,26 +36,31 @@ const ResidentHome = () => {
           New request
         </Link>
       </div>
-      <section className="mt-8 space-y-3">
+      <div className="mt-8">
+        <BuildingRoster role={session?.role ?? "resident"} buildingInfo={buildingInfo} flats={roster} />
+      </div>
+      <section className="mt-8">
         {open.length === 0 ? (
           <EmptyState
             title="Nothing open"
             body="When something breaks, write it here. You will see status without calling anyone."
           />
         ) : (
-          open.map((item) => (
-            <RequestCard key={item.id} request={item} href={`/resident/requests/${item.id}`} />
-          ))
+          <RequestList>
+            {open.map((item) => (
+              <RequestCard key={item.id} request={item} href={`/resident/requests/${item.id}`} />
+            ))}
+          </RequestList>
         )}
       </section>
       {closed.length > 0 ? (
         <section className="mt-10">
           <h2 className="font-display text-xl">Recently closed</h2>
-          <div className="mt-3 space-y-3 opacity-80">
+          <RequestList className="mt-3 opacity-80">
             {closed.map((item) => (
               <RequestCard key={item.id} request={item} href={`/resident/requests/${item.id}`} />
             ))}
-          </div>
+          </RequestList>
         </section>
       ) : null}
     </AppShell>

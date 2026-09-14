@@ -1,25 +1,4 @@
-import type { Actor, Decision, Notice, RequestRecord, Vendor } from "@/types"
-
-export const BUILDING = {
-  name: "Uttara Heights",
-  line: "12 storeys · 48 flats · House 18, Road 7, Uttara",
-  fee: 2500
-}
-
-export const actors: Actor[] = [
-  { id: "nusrat", name: "Nusrat Rahman", role: "resident", flatId: "7-B", title: "Flat 7-B" },
-  { id: "karim", name: "Karim Hossain", role: "resident", flatId: "10-A", title: "Flat 10-A" },
-  { id: "hasan", name: "Hasan Mia", role: "staff", title: "Caretaker" },
-  { id: "rina", name: "Rina Chowdhury", role: "committee", title: "Treasurer" },
-  { id: "rafiq", name: "Rafiq Uddin", role: "vendor", vendorId: "metro-lift", title: "Metro Lift AMC" },
-  { id: "rahman", name: "Abdur Rahman", role: "vendor", vendorId: "rahman-pump", title: "Rahman Pump Service" }
-]
-
-export const vendors: Vendor[] = [
-  { id: "metro-lift", name: "Metro Lift AMC", trade: "Lift" },
-  { id: "rahman-pump", name: "Rahman Pump Service", trade: "Water / pump" },
-  { id: "uttara-electric", name: "Uttara Electric", trade: "Electrical" }
-]
+import type { BuildingInfo, Decision, Flat, Notice, Person, RequestRecord, Role } from "@/types"
 
 const pumpCosts = [6000, 6500, 7000, 5500, 8000, 5500]
 
@@ -37,7 +16,7 @@ const pumpJobs: RequestRecord[] = pumpCosts.map((cost, index) => {
   return {
     id: `pump-${index + 1}`,
     flatId: "common",
-    residentId: "hasan",
+    residentId: "hasan@yopmail.com",
     message: `Roof pump failed again. Patch ${index + 1} of the season.`,
     category: "water",
     urgency: "urgent",
@@ -61,7 +40,7 @@ const pumpJobs: RequestRecord[] = pumpCosts.map((cost, index) => {
       }
     ],
     timeline: [
-      { id: `pump-${index + 1}-c`, at: safeCreated, actorId: "hasan", label: "Closed as another patch" }
+      { id: `pump-${index + 1}-c`, at: safeCreated, actorId: "hasan@yopmail.com", label: "Closed as another patch" }
     ]
   }
 })
@@ -73,7 +52,7 @@ export const seedRequests: RequestRecord[] = [
   {
     id: "req-7b-lift",
     flatId: "7-B",
-    residentId: "nusrat",
+    residentId: "nusrat@yopmail.com",
     message: "lift ta again kharap hocche, 3 din dhore majhe majhe jame, ami bonna ke niye 4 thake namte parsi na, emergency.",
     category: "lift",
     urgency: "emergency",
@@ -90,7 +69,7 @@ export const seedRequests: RequestRecord[] = [
       }
     ],
     timeline: [
-      { id: "7b-sub", at: "2026-09-13T08:12:00.000Z", actorId: "nusrat", label: "Request submitted" }
+      { id: "7b-sub", at: "2026-09-13T08:12:00.000Z", actorId: "nusrat@yopmail.com", label: "Request submitted" }
     ],
     ai: {
       category: "lift",
@@ -102,7 +81,7 @@ export const seedRequests: RequestRecord[] = [
   {
     id: "req-10a-shaft",
     flatId: "10-A",
-    residentId: "karim",
+    residentId: "karim@yopmail.com",
     message: "Water leaking into the lift shaft from 10-A bathroom. Floor is wet. This is not a drip — it is running.",
     category: "water",
     urgency: "emergency",
@@ -119,7 +98,7 @@ export const seedRequests: RequestRecord[] = [
       }
     ],
     timeline: [
-      { id: "10a-sub", at: "2026-09-13T09:04:00.000Z", actorId: "karim", label: "Request submitted" }
+      { id: "10a-sub", at: "2026-09-13T09:04:00.000Z", actorId: "karim@yopmail.com", label: "Request submitted" }
     ],
     ai: {
       category: "water",
@@ -138,7 +117,7 @@ export const seedDecisions: Decision[] = [
     vendorId: "rahman-pump",
     equipmentId: "roof-pump",
     at: "2026-09-01T16:00:00.000Z",
-    actorId: "rina"
+    actorId: "rina@yopmail.com"
   }
 ]
 
@@ -163,17 +142,69 @@ export const seedNotices: Notice[] = [
   }
 ]
 
-export const findActor = (id: string) => {
-  return (
-    actors.find((item) => item.id === id) ?? {
-      id,
-      name: "Desk",
-      role: "staff" as const,
-      title: "System"
-    }
-  )
+export const seedCast: (Person & { role: Role })[] = [
+  { id: "noor@yopmail.com", email: "noor@yopmail.com", name: "Noor Mohammad", role: "admin", title: "Admin" },
+  {
+    id: "nusrat@yopmail.com",
+    email: "nusrat@yopmail.com",
+    name: "Nusrat Rahman",
+    role: "resident",
+    flatId: "7-B",
+    title: "Flat 7-B"
+  },
+  {
+    id: "karim@yopmail.com",
+    email: "karim@yopmail.com",
+    name: "Karim Hossain",
+    role: "resident",
+    flatId: "10-A",
+    title: "Flat 10-A"
+  },
+  { id: "hasan@yopmail.com", email: "hasan@yopmail.com", name: "Hasan Mia", role: "staff", title: "Caretaker" },
+  {
+    id: "rina@yopmail.com",
+    email: "rina@yopmail.com",
+    name: "Rina Chowdhury",
+    role: "committee",
+    title: "Treasurer"
+  },
+  {
+    id: "rafiq@yopmail.com",
+    email: "rafiq@yopmail.com",
+    name: "Rafiq Uddin",
+    role: "vendor",
+    vendorId: "metro-lift",
+    title: "Metro Lift AMC"
+  },
+  {
+    id: "rahman@yopmail.com",
+    email: "rahman@yopmail.com",
+    name: "Abdur Rahman",
+    role: "vendor",
+    vendorId: "rahman-pump",
+    title: "Rahman Pump Service"
+  }
+]
+
+export const seedPeople: Person[] = seedCast.map((item) => ({
+  id: item.id,
+  email: item.email,
+  name: item.name,
+  title: item.title,
+  flatId: item.flatId,
+  vendorId: item.vendorId
+}))
+
+export const seedFlats: Flat[] = [
+  { id: "7-B", label: "7-B", floor: 7, status: "occupied" },
+  { id: "10-A", label: "10-A", floor: 10, status: "occupied" }
+]
+
+export const seedBuildingInfo: BuildingInfo = {
+  name: "Uttara Heights",
+  addressLine: "House 18, Road 7, Uttara",
+  storeys: 12,
+  flatCount: 48,
+  fee: 2500
 }
 
-export const findVendor = (id: string) => {
-  return vendors.find((item) => item.id === id)
-}

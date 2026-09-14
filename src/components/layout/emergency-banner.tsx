@@ -1,11 +1,13 @@
 "use client"
 
 import Link from "next/link"
+import { motion, useReducedMotion } from "framer-motion"
 import { useBuilding, useSessionActor } from "@/lib/store"
 
 export const EmergencyBanner = () => {
   const { requests } = useBuilding()
   const actor = useSessionActor()
+  const reduceMotion = useReducedMotion()
   if (!actor || actor.role === "resident") return null
 
   const open = requests.filter((item) => {
@@ -28,7 +30,14 @@ export const EmergencyBanner = () => {
       : `/staff/requests/${first.id}`
 
   return (
-    <div className="bg-terracotta-wash text-terracotta-deep">
+    <motion.div
+      className="bg-terracotta-wash text-terracotta-deep"
+      animate={
+        reduceMotion
+          ? undefined
+          : { opacity: [1, 0.85, 1], transition: { duration: 1.8, repeat: Infinity, ease: "easeInOut" } }
+      }
+    >
       <div className="mx-auto flex max-w-[1200px] flex-col gap-2 px-4 py-3 md:flex-row md:items-center md:justify-between md:px-8">
         <p className="font-display text-lg">
           {open.length} emergency {open.length === 1 ? "incident" : "incidents"} open
@@ -40,6 +49,6 @@ export const EmergencyBanner = () => {
           Flat {first.flatId} — open first
         </Link>
       </div>
-    </div>
+    </motion.div>
   )
 }

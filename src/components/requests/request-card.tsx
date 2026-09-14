@@ -1,6 +1,8 @@
 import Link from "next/link"
+import { motion, useReducedMotion } from "framer-motion"
 import { formatAge, statusLabel, urgencyLabel } from "@/lib/format"
 import { formatTaka } from "@/lib/money"
+import { fadeRise } from "@/lib/motion"
 import { cn } from "@/lib/cn"
 import type { RequestRecord } from "@/types"
 
@@ -12,11 +14,19 @@ type RequestCardProps = {
 
 export const RequestCard = ({ request, href, showMoney }: RequestCardProps) => {
   const emergency = request.urgency === "emergency" && request.status !== "verified_closed"
+  const reduceMotion = useReducedMotion()
 
   return (
-    <article
+    <motion.article
+      variants={fadeRise}
+      whileHover={{ y: -2 }}
+      animate={
+        emergency && !reduceMotion
+          ? { opacity: [1, 0.85, 1], transition: { duration: 1.8, repeat: Infinity, ease: "easeInOut" } }
+          : undefined
+      }
       className={cn(
-        "rounded-[12px] border bg-surface p-4 transition-transform hover:-translate-y-0.5",
+        "rounded-[12px] border bg-surface p-4 transition-shadow hover:shadow-[var(--shadow-lg)]",
         emergency ? "border-terracotta bg-terracotta-wash" : "border-hairline"
       )}
     >
@@ -42,6 +52,6 @@ export const RequestCard = ({ request, href, showMoney }: RequestCardProps) => {
           ) : null}
         </div>
       </Link>
-    </article>
+    </motion.article>
   )
 }

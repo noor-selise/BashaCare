@@ -1,24 +1,35 @@
 "use client"
 
+import { motion } from "framer-motion"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/components/ui/toast"
 import { categoryLabel, urgencyLabel } from "@/lib/format"
+import { fadeRise } from "@/lib/motion"
 import { useBuilding } from "@/lib/store"
 import type { RequestRecord, Urgency } from "@/types"
 
 export const AiPanel = ({ request }: { request: RequestRecord }) => {
   const { applyAi } = useBuilding()
+  const toast = useToast()
   const [urgency, setUrgency] = useState<Urgency>(request.ai?.urgency ?? request.urgency)
   const [reason, setReason] = useState("Intermittent jam is urgent. Shaft leak is the emergency.")
 
   if (!request.ai) return null
 
   const handleConfirm = () => {
-    applyAi(request.id, urgency, urgency === request.ai?.urgency ? undefined : reason)
+    const overridden = urgency !== request.ai?.urgency
+    applyAi(request.id, urgency, overridden ? reason : undefined)
+    toast.success(overridden ? "AI urgency overridden." : "AI suggestion confirmed.")
   }
 
   return (
-    <section className="border border-hairline bg-surface-2 p-4">
+    <motion.section
+      initial="hidden"
+      animate="visible"
+      variants={fadeRise}
+      className="border border-hairline bg-surface-2 p-4"
+    >
       <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint">
         AI suggestion — staff must confirm
       </p>
@@ -73,6 +84,6 @@ export const AiPanel = ({ request }: { request: RequestRecord }) => {
           </p>
         ) : null}
       </div>
-    </section>
+    </motion.section>
   )
 }

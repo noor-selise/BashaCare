@@ -1,7 +1,5 @@
 {
-  "schemaName": "Request",
   "collectionName": "blx_Requests",
-  "schemaType": 1,
   "fields": [
     {
       "name": "flatId",
@@ -9,7 +7,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Flat id such as 7-B"
+      "description": "Flat id such as 7-B",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "residentId",
@@ -17,7 +18,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Resident actor id"
+      "description": "Resident actor id",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "message",
@@ -25,7 +29,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Resident report text"
+      "description": "Resident report text",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "category",
@@ -33,7 +40,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "lift, water, electrical, plumbing, parking, garden, other"
+      "description": "lift, water, electrical, plumbing, parking, garden, other",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "urgency",
@@ -41,7 +51,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "emergency, urgent, routine"
+      "description": "emergency, urgent, routine",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "status",
@@ -49,7 +62,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Request lifecycle status"
+      "description": "Request lifecycle status",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "vendorId",
@@ -57,7 +73,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Assigned vendor id"
+      "description": "Assigned vendor id",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "equipmentId",
@@ -65,7 +84,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Equipment id when the request is about kit"
+      "description": "Equipment id when the request is about kit",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "cost",
@@ -73,7 +95,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Job cost in BDT"
+      "description": "Job cost in BDT",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "costCategory",
@@ -81,7 +106,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Spend bucket such as pump"
+      "description": "Spend bucket such as pump",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "createdAt",
@@ -89,7 +117,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "ISO created timestamp"
+      "description": "ISO created timestamp",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "acknowledgedAt",
@@ -97,7 +128,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "ISO acknowledged timestamp"
+      "description": "ISO acknowledged timestamp",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "assignedAt",
@@ -105,7 +139,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "ISO assigned timestamp"
+      "description": "ISO assigned timestamp",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "completedAt",
@@ -113,7 +150,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "ISO completed timestamp"
+      "description": "ISO completed timestamp",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "verifiedAt",
@@ -121,7 +161,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "ISO resident-verified timestamp"
+      "description": "ISO resident-verified timestamp",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "evidenceJson",
@@ -129,7 +172,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Before/after evidence as JSON"
+      "description": "Before/after evidence as JSON",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "timelineJson",
@@ -137,7 +183,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Status timeline as JSON"
+      "description": "Status timeline as JSON",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "aiJson",
@@ -145,7 +194,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "AI suggestion as JSON"
+      "description": "AI suggestion as JSON",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "staffOverrideJson",
@@ -153,7 +205,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Staff urgency override as JSON"
+      "description": "Staff urgency override as JSON",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "staffReply",
@@ -161,7 +216,12 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Staff reply sent to the resident"
+      "description": "Staff reply sent to the resident",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     }
-  ]
+  ],
+  "schemaName": "Request",
+  "schemaType": 1
 }

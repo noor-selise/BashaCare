@@ -10,17 +10,36 @@ import {
 } from "react"
 import { proposeFromMessage } from "@/features/ai/propose"
 import {
-  actors,
-  seedDecisions,
-  seedNotices,
-  seedRequests
-} from "@/data/seed"
+  deskRoleFromSlugs,
+  demoRoleFromEmail,
+  findPerson,
+  vendors as directoryVendors
+} from "@/data/directory"
+import { useAuth } from "@/lib/blocks/auth-context"
+import {
+  addFlat as addFlatRecord,
+  addVendor as addVendorRecord,
+  loadBuildingRecords,
+  markNoticeReadRemote,
+  saveBuildingInfo,
+  saveNotice,
+  saveRequest,
+  seedBuildingRecords
+} from "@/lib/blocks/building-data"
+import { saveOwnProfile, type ProfilePatch } from "@/lib/blocks/profile"
+import { invitePerson as invitePersonRecord, type InviteInput } from "@/lib/blocks/registry"
+import { markRequestNoticesRead, noticeDraft } from "@/lib/notices"
 import type {
+  BuildingInfo,
   Decision,
+  Evidence,
+  Flat,
   Notice,
+  Person,
   RequestRecord,
   Session,
-  Urgency
+  Urgency,
+  Vendor
 } from "@/types"
 
 type BuildingState = {
@@ -28,21 +47,29 @@ type BuildingState = {
   requests: RequestRecord[]
   decisions: Decision[]
   notices: Notice[]
+  vendors: Vendor[]
+  flats: Flat[]
+  people: Person[]
+  buildingInfo: BuildingInfo | null
 }
 
 type BuildingApi = BuildingState & {
   hydrated: boolean
-  signIn: (actorId: string) => void
-  signOut: () => void
-  submitRequest: (input: { message: string; photoLabel?: string }) => string
+  signOut: () => Promise<void>
+  submitRequest: (input: { message: string; id?: string; evidence?: Evidence[] }) => string
   acknowledge: (id: string) => void
   applyAi: (id: string, urgency: Urgency, reason?: string) => void
   assignVendor: (id: string, vendorId: string) => void
-  markDone: (id: string, afterLabel: string, cost?: number) => void
+  markDone: (id: string, after?: Evidence, cost?: number) => void
   verify: (id: string) => void
   rejectVerify: (id: string) => void
   markNoticeRead: (id: string) => void
   visibleRequests: () => RequestRecord[]
+  addFlat: (input: { label: string; floor: number }) => Promise<void>
+  updateBuildingInfo: (input: Omit<BuildingInfo, "id">) => Promise<void>
+  invitePerson: (input: InviteInput) => Promise<void>
+  addVendor: (input: { name: string; trade: string }) => Promise<void>
+  updateProfile: (patch: ProfilePatch) => Promise<void>
 }
 
 const BuildingContext = createContext<BuildingApi | null>(null)
@@ -53,70 +80,102 @@ const nextId = (prefix: string) => {
 
 const now = () => new Date().toISOString()
 
-const SESSION_KEY = "bashacare.session"
-const STATE_KEY = "bashacare.state"
-
-const readStoredState = (): BuildingState | null => {
-  try {
-    const raw = sessionStorage.getItem(STATE_KEY)
-    if (raw) return JSON.parse(raw) as BuildingState
-    const sessionRaw = sessionStorage.getItem(SESSION_KEY)
-    if (sessionRaw) {
-      return {
-        session: JSON.parse(sessionRaw) as Session,
-        requests: seedRequests,
-        decisions: seedDecisions,
-        notices: seedNotices
-      }
-    }
-  } catch {
-    // sessionStorage can be blocked in some embedded browsers
-  }
-  return null
-}
+// seedBuildingRecords()'s per-collection "already seeded?" check races itself when this
+// provider's auth effect fires more than once for the same page load (React Strict Mode's
+// double effect invocation, a remount, rapid auth-state churn) — each firing can see an empty
+// collection before the other's writes land, and both then create a full set of seed rows.
+// One attempt per page load is enough; a full reload resets this and tries again if it failed.
+let seedAttempted = false
 
 export const BuildingProvider = ({ children }: { children: ReactNode }) => {
+  const { status, claims, roles, logout } = useAuth()
   const [state, setState] = useState<BuildingState>({
     session: null,
-    requests: seedRequests,
-    decisions: seedDecisions,
-    notices: seedNotices
+    requests: [],
+    decisions: [],
+    notices: [],
+    vendors: directoryVendors,
+    flats: [],
+    people: [],
+    buildingInfo: null
   })
   const [hydrated, setHydrated] = useState(false)
 
   useEffect(() => {
-    const stored = readStoredState()
-    if (stored) setState(stored)
-    setHydrated(true)
-  }, [])
-
-  useEffect(() => {
-    if (!hydrated) return
-    try {
-      sessionStorage.setItem(STATE_KEY, JSON.stringify(state))
-      if (state.session) {
-        sessionStorage.setItem(SESSION_KEY, JSON.stringify(state.session))
-      } else {
-        sessionStorage.removeItem(SESSION_KEY)
-      }
-    } catch {
-      // keep in-memory session if storage is blocked
+    if (status === "loading") return
+    if (status !== "authenticated" || !claims?.email) {
+      setState((current) => ({
+        ...current,
+        session: null,
+        requests: [],
+        decisions: [],
+        notices: []
+      }))
+      setHydrated(true)
+      return
     }
-  }, [hydrated, state])
+
+    const role = deskRoleFromSlugs(roles) ?? demoRoleFromEmail(claims.email)
+    if (!role) {
+      setState((current) => ({ ...current, session: null }))
+      setHydrated(true)
+      return
+    }
+
+    // Person rows key on a normalised email, so normalise the claim before it becomes the actor id.
+    const session = { actorId: claims.email.trim().toLowerCase(), role }
+    setState((current) => ({ ...current, session }))
+
+    const load = async () => {
+      try {
+        if (role === "admin" && !seedAttempted) {
+          seedAttempted = true
+          await seedBuildingRecords()
+        }
+        const records = await loadBuildingRecords()
+        setState((current) => ({
+          ...current,
+          session,
+          ...records
+        }))
+      } catch {
+        setState((current) => ({ ...current, session }))
+      } finally {
+        setHydrated(true)
+      }
+    }
+
+    void load()
+  }, [claims, roles, status])
 
   const api = useMemo<BuildingApi>(() => {
-    const actor = actors.find((item) => item.id === state.session?.actorId)
+    const actor = state.session ? findPerson(state.session.actorId, state.people) : null
+
+    const persist = (item: RequestRecord) => {
+      void saveRequest(item).then((saved) => {
+        if (saved.id === item.id) return
+        setState((current) => ({
+          ...current,
+          requests: current.requests.map((row) => {
+            return row.id === item.id ? saved : row
+          })
+        }))
+      })
+    }
 
     const patchRequest = (
       id: string,
       update: (item: RequestRecord) => RequestRecord
     ) => {
-      setState((current) => ({
-        ...current,
-        requests: current.requests.map((item) => {
-          return item.id === id ? update(item) : item
+      setState((current) => {
+        const requests = current.requests.map((item) => {
+          if (item.id !== id) return item
+          const next = update(item)
+          persist(next)
+          return next
         })
-      }))
+        return { ...current, requests }
+      })
     }
 
     const addEvent = (item: RequestRecord, label: string, detail?: string) => {
@@ -136,11 +195,11 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
     }
 
     const visibleRequests = () => {
-      if (!actor) return []
-      if (actor.role === "resident") {
+      if (!actor || !state.session) return []
+      if (state.session.role === "resident") {
         return state.requests.filter((item) => item.residentId === actor.id)
       }
-      if (actor.role === "vendor") {
+      if (state.session.role === "vendor") {
         return state.requests.filter((item) => item.vendorId === actor.vendorId)
       }
       return state.requests
@@ -149,20 +208,18 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
     return {
       ...state,
       hydrated,
-      signIn: (actorId) => {
-        const next = actors.find((item) => item.id === actorId)
-        if (!next) return
-        const session = { actorId: next.id, role: next.role }
+      signOut: async () => {
+        await logout()
         setState((current) => ({
           ...current,
-          session
+          session: null,
+          requests: [],
+          decisions: [],
+          notices: []
         }))
       },
-      signOut: () => {
-        setState((current) => ({ ...current, session: null }))
-      },
-      submitRequest: ({ message, photoLabel }) => {
-        const id = nextId("req")
+      submitRequest: ({ message, id: requestedId, evidence }) => {
+        const id = requestedId ?? nextId("req")
         const createdAt = now()
         const suggestion = proposeFromMessage(message, state.requests)
         const record: RequestRecord = {
@@ -174,17 +231,7 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
           urgency: suggestion.urgency,
           status: "submitted",
           createdAt,
-          evidence: photoLabel
-            ? [
-                {
-                  id: nextId("evd"),
-                  kind: "before",
-                  label: "Before",
-                  caption: photoLabel,
-                  tone: suggestion.category === "lift" ? "lift" : "other"
-                }
-              ]
-            : [],
+          evidence: evidence ?? [],
           timeline: [
             {
               id: nextId("ev"),
@@ -195,22 +242,20 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
           ],
           ai: suggestion
         }
+        const draft = noticeDraft("submitted", record)
+        const notice: Notice = {
+          ...draft,
+          id: nextId("n"),
+          at: createdAt,
+          read: false
+        }
         setState((current) => ({
           ...current,
           requests: [record, ...current.requests],
-          notices: [
-            {
-              id: nextId("n"),
-              role: "staff",
-              title: `New request from ${record.flatId}`,
-              body: message.slice(0, 120),
-              requestId: id,
-              at: createdAt,
-              read: false
-            },
-            ...current.notices
-          ]
+          notices: [notice, ...current.notices]
         }))
+        persist(record)
+        void saveNotice(notice)
         return id
       },
       acknowledge: (id) => {
@@ -234,7 +279,7 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
                 from,
                 to: urgency,
                 reason: reason ?? "Staff judgement",
-                actorId: state.session?.actorId ?? "hasan"
+                actorId: state.session?.actorId ?? "hasan@yopmail.com"
               }
           return addEvent(
             {
@@ -250,53 +295,102 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
         })
       },
       assignVendor: (id, vendorId) => {
-        patchRequest(id, (item) => {
-          return addEvent(
-            {
-              ...item,
-              vendorId,
-              status: "assigned",
-              assignedAt: now()
-            },
-            "Assigned to vendor"
-          )
-        })
+        const item = state.requests.find((row) => row.id === id)
+        if (!item || item.status === "verified_closed" || item.status === "rejected") return
+
+        const assigned = addEvent(
+          {
+            ...item,
+            vendorId,
+            status: "assigned",
+            assignedAt: now()
+          },
+          "Assigned to vendor"
+        )
+        patchRequest(id, () => assigned)
+
+        const draft = noticeDraft("assigned", assigned)
+        const notice: Notice = {
+          ...draft,
+          id: nextId("n"),
+          at: now(),
+          read: false
+        }
+        setState((current) => ({
+          ...current,
+          notices: [notice, ...current.notices]
+        }))
+        void saveNotice(notice)
       },
-      markDone: (id, afterLabel, cost) => {
-        patchRequest(id, (item) => {
-          return addEvent(
-            {
-              ...item,
-              status: "awaiting_verification",
-              completedAt: now(),
-              cost: cost ?? item.cost,
-              evidence: [
-                ...item.evidence,
-                {
-                  id: nextId("evd"),
-                  kind: "after",
-                  label: "After",
-                  caption: afterLabel,
-                  tone: item.category === "lift" ? "lift" : "other"
-                }
-              ]
-            },
-            "Work marked done — waiting for resident verify"
-          )
-        })
+      markDone: (id, after, cost) => {
+        const item = state.requests.find((row) => row.id === id)
+        if (
+          !item ||
+          item.status === "verified_closed" ||
+          item.status === "awaiting_verification" ||
+          item.status === "rejected"
+        ) {
+          return
+        }
+
+        const updated = addEvent(
+          {
+            ...item,
+            status: "awaiting_verification",
+            completedAt: now(),
+            cost: cost ?? item.cost,
+            evidence: after ? [...item.evidence, after] : item.evidence
+          },
+          "Work marked done — waiting for resident verify"
+        )
+        patchRequest(id, () => updated)
+
+        const draft = noticeDraft("ready_to_verify", updated)
+        const notice: Notice = {
+          ...draft,
+          id: nextId("n"),
+          at: now(),
+          read: false
+        }
+        setState((current) => ({
+          ...current,
+          notices: [notice, ...current.notices]
+        }))
+        void saveNotice(notice)
       },
       verify: (id) => {
-        patchRequest(id, (item) => {
-          if (item.status !== "awaiting_verification") return item
-          return addEvent(
-            {
-              ...item,
-              status: "verified_closed",
-              verifiedAt: now()
-            },
-            "Resident verified — closed"
-          )
+        const item = state.requests.find((row) => row.id === id)
+        if (!item || item.status !== "awaiting_verification") return
+
+        const closed = addEvent(
+          {
+            ...item,
+            status: "verified_closed",
+            verifiedAt: now()
+          },
+          "Resident verified — closed"
+        )
+        patchRequest(id, () => closed)
+
+        const draft = noticeDraft("verified_closed", closed)
+        const notice: Notice = {
+          ...draft,
+          id: nextId("n"),
+          at: now(),
+          read: false
+        }
+        setState((current) => {
+          current.notices.forEach((row) => {
+            if (row.requestId === id && !row.read) {
+              void markNoticeReadRemote(row.id)
+            }
+          })
+          return {
+            ...current,
+            notices: [notice, ...markRequestNoticesRead(current.notices, id)]
+          }
         })
+        void saveNotice(notice)
       },
       rejectVerify: (id) => {
         patchRequest(id, (item) => {
@@ -316,10 +410,40 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
             return item.id === id ? { ...item, read: true } : item
           })
         }))
+        void markNoticeReadRemote(id)
+      },
+      addFlat: async (input) => {
+        const flat = await addFlatRecord(input)
+        setState((current) => ({ ...current, flats: [...current.flats, flat] }))
+      },
+      updateBuildingInfo: async (input) => {
+        const saved = await saveBuildingInfo(input, state.buildingInfo?.id)
+        setState((current) => ({ ...current, buildingInfo: saved }))
+      },
+      invitePerson: async (input) => {
+        const person = await invitePersonRecord(input)
+        setState((current) => ({ ...current, people: [...current.people, person] }))
+      },
+      addVendor: async (input) => {
+        const vendor = await addVendorRecord(input)
+        setState((current) => ({ ...current, vendors: [...current.vendors, vendor] }))
+      },
+      updateProfile: async (patch) => {
+        if (!state.session?.actorId) throw new Error("Sign in to update your profile.")
+        const existing = findPerson(state.session.actorId, state.people)
+        const saved = await saveOwnProfile(state.session.actorId, patch, existing)
+        setState((current) => ({
+          ...current,
+          people: current.people.some((item) => item.id.toLowerCase() === saved.id.toLowerCase())
+            ? current.people.map((item) => {
+                return item.id.toLowerCase() === saved.id.toLowerCase() ? saved : item
+              })
+            : [...current.people, saved]
+        }))
       },
       visibleRequests
     }
-  }, [hydrated, state])
+  }, [hydrated, logout, state])
 
   return (
     <BuildingContext.Provider value={api}>
@@ -335,7 +459,8 @@ export const useBuilding = () => {
 }
 
 export const useSessionActor = () => {
-  const { session } = useBuilding()
-  return actors.find((item) => item.id === session?.actorId) ?? null
+  const { session, people } = useBuilding()
+  if (!session) return null
+  const person = findPerson(session.actorId, people)
+  return { ...person, role: session.role }
 }
-

@@ -33,11 +33,12 @@ Cost of that failure: a two-day lift outage strands elderly residents; ৳40,000
 | Maintenance fee / payments? | Out of scope | Fee (৳2,500) is context, not a must-do. |
 | UI language? | English chrome, Bangla-capable content | Residents write Bangla. Staff and committee work in English. |
 | Notifications? | In-app banners + inbox | Emergency must be visually louder. SMS/WhatsApp later. |
-| Auth for the demo? | Blocks hosted login on this tenant; demo role switcher as the desk fallback | Invite `noor.mohammad@selisegroup.com` as System User. Resident/staff/committee/vendor IAM roles are not defined yet. |
+| Auth for the demo? | Blocks hosted login on this tenant; email→role fallback via `seedCast` when IAM claims are absent | Live admin: `noor.mohammad@selisegroup.com` (System User + `admin` IAM role). Five desk IAM roles exist (`resident`, `staff`, `committee`, `vendor`, `admin`). Every signed-in desk also requires a `Person` row — IAM role alone shows "No desk for this account". |
 | Framework? | Next.js at repo root, wired as an existing Blocks app | User asked for Next.js. Official `blocks new web` is still Vite. Existing-app skill owns the wire-up. |
 | Folder layout? | Single Next.js app at repo root + `blocks/` + role-grouped `src/app` | One app, four role surfaces. No monorepo until a second app exists. |
 | AI? | Heuristic + history, staff confirm | Propose category, urgency + reason, draft reply. Staff can upgrade/downgrade. Flag Nth repair vs replace. |
-| Nav depth? | Two levels max | Resident / staff / committee / vendor each have a home + a detail. |
+| Nav depth? | Two levels max | Resident / staff / committee / vendor each have a home + a detail. Account is one level. |
+| Profile photo? | Required on hosted tenant | Every desk role uploads once; initials fallback in local demo without Blocks storage. |
 
 ## 4. Functional requirements
 
@@ -47,6 +48,8 @@ Cost of that failure: a two-day lift outage strands elderly residents; ৳40,000
 - FR-1.3 Costs, vendor performance, and committee decisions are visible to committee and managers only.
 - FR-1.4 Vendors see only work assigned to them.
 - FR-1.5 Role is visible in the chrome at all times so a demo cannot silently leak the wrong data.
+- FR-1.6 **Account profile (all roles).** Every signed-in desk role — resident, staff, committee, vendor, and admin — has an **Account** item in primary nav and can edit their own **display name** and **title** (how they appear on timelines, triage, and the header). Email, role, flat, and vendor assignment stay read-only; flat and vendor are changed only through Registration.
+- FR-1.7 **Profile photo (required).** Every signed-in user must upload a **profile photo** through Blocks file storage before saving Account changes on a hosted tenant. The photo is stored as a private file id on the user's Person row, shown on Account and in the desk header avatar. Seeded demo users without a photo show initials until they upload. Same storage rules as request evidence (SDK only; no raw Blocks API calls).
 
 ### FR-2 Resident request
 - FR-2.1 Resident reports a problem as a message (not a form-first flow), optionally with a photo.
@@ -147,13 +150,15 @@ Staff may reject with a reason. Closed requires resident verification except whe
 - A committee member can answer, on one screen: which vendor is slow, what they cost, and which urgent incidents are open.
 - The pump case shows six repairs / ৳38,500 and a replace decision.
 - Staff can override an AI urgency call, and that override is visible.
+- Any desk role can edit name, title, and profile photo on Account without admin help; the photo appears in the header.
 
 ## 8. Feasibility (revalidation)
 
 | Capability | Feasible on Blocks? | How | Risk |
 |------------|---------------------|-----|------|
-| Four roles + row isolation | Partial | Demo actors for now; only `clouduser` exists in IAM | Add resident/staff/committee/vendor roles before row policies |
+| Four roles + row isolation | Partial | IAM roles + `Person` rows live; app-level filtering in `visibleRequests()` | Data gateway row policies by IAM role still deferred; see building-registration spec §3.5 |
 | Request lifecycle + evidence | Yes | Data schema + Data Storage photos | Storage provider may be unset on a new tenant |
+| Profile photo on Person row | Yes | Person.photoFileId + Blocks file storage | Person schema must include photo fields; reload data gateway after push |
 | Emergency vs routine | Yes, app-owned | Urgency field + Notifier + UI path | Notifier/mail config often missing on fresh tenants |
 | Cost + vendor performance | Yes | Job cost fields + GraphQL/aggregation in app | No warehouse. Rollups are app queries. |
 | Resident Bangla messages | Yes | Store raw text; Noto Sans Bengali in UI | Localization modules are for chrome, not free text |
@@ -167,7 +172,7 @@ Staff may reject with a reason. Closed requires resident verification except whe
 ## 9. Assumptions
 
 1. Single building named Uttara Heights, 48 flats, 12 storeys.
-2. Demo users: resident 7-B (Nusrat), resident 10-A (Karim), caretaker (Hasan), treasurer (Rina), lift vendor, pump vendor.
+2. Demo users (seed cast — see `README.md` for emails and manual flows): admin (Noor), resident 7-B (Nusrat), resident 10-A (Karim), caretaker (Hasan), treasurer (Rina), lift vendor (Rafiq / Metro Lift AMC), pump vendor (Abdur Rahman / Rahman Pump Service).
 3. Cloud writes wait until `D975c4874bd6b47b995cce54f926c09cc` is shared **or** the user approves `blocks projects create "BashaCare"`.
 4. AI is a transparent, staff-confirmed assistant — not autonomous close/send.
 5. Official skill source of truth is `.codex/skills/`. Cursor also has a copy at `.cursor/skills/`.
