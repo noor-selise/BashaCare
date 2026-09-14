@@ -1,0 +1,31 @@
+{
+  "schemaName": "Flat",
+  "collectionName": "blx_Flats",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "label",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": true,
+      "description": "Flat label such as 7-B"
+    },
+    {
+      "name": "floor",
+      "type": "Float",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Floor number"
+    },
+    {
+      "name": "status",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "occupied or vacant"
+    }
+  ]
+}

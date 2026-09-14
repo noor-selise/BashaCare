@@ -1,7 +1,5 @@
 {
-  "schemaName": "Decision",
   "collectionName": "blx_Decisions",
-  "schemaType": 1,
   "fields": [
     {
       "name": "title",
@@ -9,7 +7,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Committee decision title"
+      "description": "Committee decision title",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "body",
@@ -17,7 +18,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Decision body"
+      "description": "Decision body",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "vendorId",
@@ -25,7 +29,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Related vendor id"
+      "description": "Related vendor id",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "equipmentId",
@@ -33,7 +40,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Related equipment id"
+      "description": "Related equipment id",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "at",
@@ -41,7 +51,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "ISO decision timestamp"
+      "description": "ISO decision timestamp",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "actorId",
@@ -49,7 +62,12 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Committee member who recorded it"
+      "description": "Committee member who recorded it",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     }
-  ]
+  ],
+  "schemaName": "Decision",
+  "schemaType": 1
 }

@@ -1,0 +1,47 @@
+{
+  "schemaName": "Building",
+  "collectionName": "blx_Buildings",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "name",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Building display name"
+    },
+    {
+      "name": "addressLine",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Street address"
+    },
+    {
+      "name": "storeys",
+      "type": "Float",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Number of storeys"
+    },
+    {
+      "name": "flatCount",
+      "type": "Float",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Total registered flat capacity"
+    },
+    {
+      "name": "fee",
+      "type": "Float",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Monthly maintenance fee in BDT"
+    }
+  ]
+}
