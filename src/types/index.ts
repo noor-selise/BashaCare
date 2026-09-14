@@ -20,13 +20,29 @@ export type Category =
   | "garden"
   | "other"
 
-export type Actor = {
+export type Person = {
   id: string
+  email: string
   name: string
-  role: Role
+  title: string
   flatId?: string
   vendorId?: string
-  title: string
+}
+
+export type Flat = {
+  id: string
+  label: string
+  floor: number
+  status: "occupied" | "vacant"
+}
+
+export type BuildingInfo = {
+  id?: string
+  name: string
+  addressLine: string
+  storeys: number
+  flatCount: number
+  fee: number
 }
 
 export type Vendor = {

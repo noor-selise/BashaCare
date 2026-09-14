@@ -1,0 +1,47 @@
+{
+  "schemaName": "Person",
+  "collectionName": "blx_Persons",
+  "schemaType": 1,
+  "fields": [
+    {
+      "name": "email",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": true,
+      "isUniqueData": true,
+      "description": "Login email, joins to the IAM user"
+    },
+    {
+      "name": "name",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": true,
+      "isUniqueData": false,
+      "description": "Display name"
+    },
+    {
+      "name": "title",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Display title, e.g. Flat 7-B or Caretaker"
+    },
+    {
+      "name": "flatId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Flat label for residents"
+    },
+    {
+      "name": "vendorId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Vendor id for vendor contacts"
+    }
+  ]
+}

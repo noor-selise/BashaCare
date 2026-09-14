@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { NoDeskNotice, OpeningDesk, SignedOutGate } from "@/components/layout/signed-out-gate"
+import { findPersonRecord } from "@/data/directory"
 import { useAuth } from "@/lib/blocks/auth-context"
 import { deskPathFromAuth, roleHome } from "@/lib/session/role-home"
 import { useBuilding, useSessionActor } from "@/lib/store"
@@ -10,16 +11,19 @@ import { useBuilding, useSessionActor } from "@/lib/store"
 const HomePage = () => {
   const router = useRouter()
   const actor = useSessionActor()
-  const { hydrated, signOut } = useBuilding()
+  const { hydrated, signOut, people, session } = useBuilding()
   const { configured, login, claims, roles, status } = useAuth()
   const [loginPending, setLoginPending] = useState(false)
   const [loginError, setLoginError] = useState<string | null>(null)
   const deskPath = deskPathFromAuth(roles, claims?.email)
+  // Spec §3.3: an IAM role alone is not a desk — the account also needs a Person row, or the
+  // desk opens with a "Desk / System" placeholder and no flat/vendor link.
+  const hasPersonRow = Boolean(session && findPersonRecord(session.actorId, people))
 
   useEffect(() => {
     if (status !== "authenticated" || !hydrated) return
-    if (actor) router.replace(roleHome(actor.role))
-  }, [actor, hydrated, router, status])
+    if (actor && hasPersonRow) router.replace(roleHome(actor.role))
+  }, [actor, hasPersonRow, hydrated, router, status])
 
   const handleBlocksLogin = async () => {
     setLoginError(null)
@@ -37,7 +41,18 @@ const HomePage = () => {
     router.replace("/")
   }
 
-  if (status === "authenticated" && (deskPath || actor)) {
+  const noDeskNotice = (
+    <NoDeskNotice
+      email={claims?.email}
+      onSignOut={() => {
+        void handleSignOut()
+      }}
+    />
+  )
+
+  if (status === "authenticated") {
+    if (!deskPath && !session) return noDeskNotice
+    if (hydrated && !hasPersonRow) return noDeskNotice
     return <OpeningDesk />
   }
 
@@ -48,17 +63,6 @@ const HomePage = () => {
         pending
         error={null}
         onSignIn={() => undefined}
-      />
-    )
-  }
-
-  if (status === "authenticated" && !deskPath) {
-    return (
-      <NoDeskNotice
-        email={claims?.email}
-        onSignOut={() => {
-          void handleSignOut()
-        }}
       />
     )
   }

@@ -15,7 +15,7 @@ import { useBuilding } from "@/lib/store"
 
 const StaffRequestPage = () => {
   const { id } = useParams<{ id: string }>()
-  const { requests, vendors, acknowledge, assignVendor, markDone } = useBuilding()
+  const { requests, vendors, acknowledge, assignVendor, markDone, people } = useBuilding()
   const request = requests.find((item) => item.id === id)
 
   const handleAssign = (event: FormEvent<HTMLFormElement>) => {
@@ -102,7 +102,7 @@ const StaffRequestPage = () => {
             <ol className="space-y-2 text-sm text-ink-soft">
               {request.timeline.map((event) => (
                 <li key={event.id}>
-                  {formatWhen(event.at)} · {findPerson(event.actorId).name}: {event.label}
+                  {formatWhen(event.at)} · {findPerson(event.actorId, people).name}: {event.label}
                 </li>
               ))}
             </ol>

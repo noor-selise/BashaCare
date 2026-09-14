@@ -26,6 +26,7 @@ const navFor = (role: Role) => {
     case "committee":
       return [
         { href: "/committee", label: "Desk" },
+        { href: "/committee/registry", label: "Registry" },
         { href: "/staff", label: "Board" },
         { href: "/inbox", label: "Alerts" },
         { href: "/account", label: "Account" }
@@ -46,7 +47,7 @@ export const SiteHeader = () => {
   const pathname = usePathname()
   const router = useRouter()
   const actor = useSessionActor()
-  const { signOut, notices, session } = useBuilding()
+  const { signOut, notices, session, buildingInfo } = useBuilding()
   const unread = notices.filter((item) => {
     if (item.read) return false
     if (session?.role === "admin") return true
@@ -69,7 +70,7 @@ export const SiteHeader = () => {
           <Link href={roleHome(actor.role)} className="font-display text-xl">
             BashaCare
           </Link>
-          <p className="text-sm text-ink-faint">Uttara Heights</p>
+          <p className="text-sm text-ink-faint">{buildingInfo?.name ?? "Uttara Heights"}</p>
         </div>
         <nav aria-label="Primary" className="flex flex-wrap items-center gap-1">
           {items.map((item) => {

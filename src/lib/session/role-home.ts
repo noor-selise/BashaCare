@@ -1,4 +1,4 @@
-import { deskRoleFromSlugs, personFromEmail } from "@/data/directory"
+import { deskRoleFromSlugs, demoRoleFromEmail } from "@/data/directory"
 import type { Role } from "@/types"
 
 export const roleHome = (role: Role) => {
@@ -20,6 +20,6 @@ export const roleHome = (role: Role) => {
 }
 
 export const deskPathFromAuth = (roles: string[], email?: string | null) => {
-  const role = deskRoleFromSlugs(roles) ?? personFromEmail(email)?.role ?? null
+  const role = deskRoleFromSlugs(roles) ?? demoRoleFromEmail(email)
   return role ? roleHome(role) : null
 }

@@ -1,9 +1,9 @@
-import type { Actor, Role, Vendor } from "@/types"
+import type { Person, Role, Vendor } from "@/types"
+import { seedCast } from "@/data/seed"
 
-export const BUILDING = {
-  name: "Uttara Heights",
-  line: "12 storeys · 48 flats · House 18, Road 7, Uttara",
-  fee: 2500
+export const FALLBACK_BUILDING = {
+  name: "BashaCare",
+  line: "Sign in to see your building"
 }
 
 export const vendors: Vendor[] = [
@@ -12,61 +12,22 @@ export const vendors: Vendor[] = [
   { id: "uttara-electric", name: "Uttara Electric", trade: "Electrical" }
 ]
 
-export const people: Actor[] = [
-  {
-    id: "noor@yopmail.com",
-    name: "Noor Mohammad",
-    role: "admin",
-    title: "Admin"
-  },
-  {
-    id: "nusrat@yopmail.com",
-    name: "Nusrat Rahman",
-    role: "resident",
-    flatId: "7-B",
-    title: "Flat 7-B"
-  },
-  {
-    id: "karim@yopmail.com",
-    name: "Karim Hossain",
-    role: "resident",
-    flatId: "10-A",
-    title: "Flat 10-A"
-  },
-  {
-    id: "hasan@yopmail.com",
-    name: "Hasan Mia",
-    role: "staff",
-    title: "Caretaker"
-  },
-  {
-    id: "rina@yopmail.com",
-    name: "Rina Chowdhury",
-    role: "committee",
-    title: "Treasurer"
-  },
-  {
-    id: "rafiq@yopmail.com",
-    name: "Rafiq Uddin",
-    role: "vendor",
-    vendorId: "metro-lift",
-    title: "Metro Lift AMC"
-  },
-  {
-    id: "rahman@yopmail.com",
-    name: "Abdur Rahman",
-    role: "vendor",
-    vendorId: "rahman-pump",
-    title: "Rahman Pump Service"
-  }
-]
-
-export const findPerson = (id: string) => {
+// Person ids are emails, and IAM can hand back a different casing than the row was stored
+// with, so every lookup here matches case-insensitively.
+export const findPersonRecord = (id: string, people: Person[]): Person | null => {
+  const key = id.trim().toLowerCase()
+  if (!key) return null
   return (
-    people.find((item) => item.id === id) ?? {
+    people.find((item) => item.id.toLowerCase() === key || item.email.toLowerCase() === key) ?? null
+  )
+}
+
+export const findPerson = (id: string, people: Person[]): Person => {
+  return (
+    findPersonRecord(id, people) ?? {
       id,
+      email: id,
       name: "Desk",
-      role: "staff" as const,
       title: "System"
     }
   )
@@ -76,9 +37,15 @@ export const findVendor = (id: string, list: Vendor[] = vendors) => {
   return list.find((item) => item.id === id)
 }
 
-export const personFromEmail = (email?: string | null) => {
+export const personFromEmail = (email: string | undefined | null, people: Person[]): Person | null => {
   if (!email) return null
-  return people.find((item) => item.id === email.toLowerCase()) ?? null
+  return people.find((item) => item.email.toLowerCase() === email.toLowerCase()) ?? null
+}
+
+export const demoRoleFromEmail = (email?: string | null): Role | null => {
+  if (!email) return null
+  const match = seedCast.find((item) => item.email.toLowerCase() === email.toLowerCase())
+  return match?.role ?? null
 }
 
 export const roleSlugsFromUnknown = (value: unknown): string[] => {

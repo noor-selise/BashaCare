@@ -11,21 +11,28 @@ import {
 import { proposeFromMessage } from "@/features/ai/propose"
 import {
   deskRoleFromSlugs,
+  demoRoleFromEmail,
   findPerson,
-  personFromEmail,
   vendors as directoryVendors
 } from "@/data/directory"
 import { useAuth } from "@/lib/blocks/auth-context"
 import {
+  addFlat as addFlatRecord,
+  addVendor as addVendorRecord,
   loadBuildingRecords,
   markNoticeReadRemote,
+  saveBuildingInfo,
   saveNotice,
   saveRequest,
   seedBuildingRecords
 } from "@/lib/blocks/building-data"
+import { invitePerson as invitePersonRecord, type InviteInput } from "@/lib/blocks/registry"
 import type {
+  BuildingInfo,
   Decision,
+  Flat,
   Notice,
+  Person,
   RequestRecord,
   Session,
   Urgency,
@@ -38,6 +45,9 @@ type BuildingState = {
   decisions: Decision[]
   notices: Notice[]
   vendors: Vendor[]
+  flats: Flat[]
+  people: Person[]
+  buildingInfo: BuildingInfo | null
 }
 
 type BuildingApi = BuildingState & {
@@ -52,6 +62,10 @@ type BuildingApi = BuildingState & {
   rejectVerify: (id: string) => void
   markNoticeRead: (id: string) => void
   visibleRequests: () => RequestRecord[]
+  addFlat: (input: { label: string; floor: number }) => Promise<void>
+  updateBuildingInfo: (input: Omit<BuildingInfo, "id">) => Promise<void>
+  invitePerson: (input: InviteInput) => Promise<void>
+  addVendor: (input: { name: string; trade: string }) => Promise<void>
 }
 
 const BuildingContext = createContext<BuildingApi | null>(null)
@@ -69,7 +83,10 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
     requests: [],
     decisions: [],
     notices: [],
-    vendors: directoryVendors
+    vendors: directoryVendors,
+    flats: [],
+    people: [],
+    buildingInfo: null
   })
   const [hydrated, setHydrated] = useState(false)
 
@@ -87,15 +104,15 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
       return
     }
 
-    const person = personFromEmail(claims.email)
-    const role = deskRoleFromSlugs(roles) ?? person?.role
+    const role = deskRoleFromSlugs(roles) ?? demoRoleFromEmail(claims.email)
     if (!role) {
       setState((current) => ({ ...current, session: null }))
       setHydrated(true)
       return
     }
 
-    const session = { actorId: person?.id ?? claims.email, role }
+    // Person rows key on a normalised email, so normalise the claim before it becomes the actor id.
+    const session = { actorId: claims.email.trim().toLowerCase(), role }
     setState((current) => ({ ...current, session }))
 
     const load = async () => {
@@ -120,7 +137,7 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
   }, [claims, roles, status])
 
   const api = useMemo<BuildingApi>(() => {
-    const actor = state.session ? findPerson(state.session.actorId) : null
+    const actor = state.session ? findPerson(state.session.actorId, state.people) : null
 
     const persist = (item: RequestRecord) => {
       void saveRequest(item).then((saved) => {
@@ -346,6 +363,22 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
         }))
         void markNoticeReadRemote(id)
       },
+      addFlat: async (input) => {
+        const flat = await addFlatRecord(input)
+        setState((current) => ({ ...current, flats: [...current.flats, flat] }))
+      },
+      updateBuildingInfo: async (input) => {
+        const saved = await saveBuildingInfo(input, state.buildingInfo?.id)
+        setState((current) => ({ ...current, buildingInfo: saved }))
+      },
+      invitePerson: async (input) => {
+        const person = await invitePersonRecord(input)
+        setState((current) => ({ ...current, people: [...current.people, person] }))
+      },
+      addVendor: async (input) => {
+        const vendor = await addVendorRecord(input)
+        setState((current) => ({ ...current, vendors: [...current.vendors, vendor] }))
+      },
       visibleRequests
     }
   }, [hydrated, logout, state])
@@ -364,8 +397,8 @@ export const useBuilding = () => {
 }
 
 export const useSessionActor = () => {
-  const { session } = useBuilding()
+  const { session, people } = useBuilding()
   if (!session) return null
-  const person = findPerson(session.actorId)
+  const person = findPerson(session.actorId, people)
   return { ...person, role: session.role }
 }

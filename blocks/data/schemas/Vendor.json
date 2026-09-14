@@ -1,7 +1,5 @@
 {
-  "schemaName": "Vendor",
   "collectionName": "blx_Vendors",
-  "schemaType": 1,
   "fields": [
     {
       "name": "name",
@@ -9,7 +7,10 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Vendor display name"
+      "description": "Vendor display name",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     },
     {
       "name": "trade",
@@ -17,7 +18,12 @@
       "isArray": false,
       "isPIIData": false,
       "isUniqueData": false,
-      "description": "Trade such as lift or pump"
+      "description": "Trade such as lift or pump",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
     }
-  ]
+  ],
+  "schemaName": "Vendor",
+  "schemaType": 1
 }
