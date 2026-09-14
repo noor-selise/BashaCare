@@ -2,23 +2,38 @@
 
 import { motion } from "framer-motion"
 import { useRouter } from "next/navigation"
-import { useState, type FormEvent } from "react"
+import { useMemo, useState, type FormEvent } from "react"
+import { EvidenceUpload } from "@/components/requests/evidence-upload"
 import { Button } from "@/components/ui/button"
 import { fadeRise } from "@/lib/motion"
 import { useBuilding } from "@/lib/store"
+import type { Evidence } from "@/types"
+
+const nextDraftId = () => `req-${Math.random().toString(36).slice(2, 8)}`
 
 export const RequestComposer = () => {
   const router = useRouter()
   const { submitRequest } = useBuilding()
   const [message, setMessage] = useState("")
-  const [photoLabel, setPhotoLabel] = useState("")
+  const [draftId] = useState(nextDraftId)
+  const [beforeEvidence, setBeforeEvidence] = useState<Evidence | null>(null)
+  const [uploading, setUploading] = useState(false)
+
+  const tone = useMemo<Evidence["tone"]>(() => {
+    const lower = message.toLowerCase()
+    if (lower.includes("lift")) return "lift"
+    if (lower.includes("pani") || lower.includes("water")) return "water"
+    if (lower.includes("pump")) return "pump"
+    return "other"
+  }, [message])
 
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault()
-    if (!message.trim()) return
+    if (!message.trim() || uploading) return
     const id = submitRequest({
+      id: draftId,
       message: message.trim(),
-      photoLabel: photoLabel.trim() || undefined
+      evidence: beforeEvidence ? [beforeEvidence] : undefined
     })
     router.push(`/resident/requests/${id}`)
   }
@@ -45,19 +60,16 @@ export const RequestComposer = () => {
           placeholder="লিখুন যেভাবে বলতেন — lift, pani, emergency…"
         />
       </label>
-      <label className="block" htmlFor="photo">
-        <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint">
-          Photo caption (optional)
-        </span>
-        <input
-          id="photo"
-          value={photoLabel}
-          onChange={(event) => setPhotoLabel(event.target.value)}
-          className="mt-2 min-h-11 w-full border border-hairline bg-surface-2 px-3 text-[16px]"
-          placeholder="Cabin door, floor 4"
-        />
-      </label>
-      <Button type="submit">Submit request</Button>
+      <EvidenceUpload
+        requestId={draftId}
+        kind="before"
+        tone={tone}
+        onUploaded={setBeforeEvidence}
+        onUploadingChange={setUploading}
+      />
+      <Button type="submit" disabled={uploading}>
+        {uploading ? "Uploading photo…" : "Submit request"}
+      </Button>
     </motion.form>
   )
 }

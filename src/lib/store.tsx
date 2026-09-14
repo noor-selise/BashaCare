@@ -27,9 +27,11 @@ import {
   seedBuildingRecords
 } from "@/lib/blocks/building-data"
 import { invitePerson as invitePersonRecord, type InviteInput } from "@/lib/blocks/registry"
+import { markRequestNoticesRead, noticeDraft } from "@/lib/notices"
 import type {
   BuildingInfo,
   Decision,
+  Evidence,
   Flat,
   Notice,
   Person,
@@ -53,11 +55,11 @@ type BuildingState = {
 type BuildingApi = BuildingState & {
   hydrated: boolean
   signOut: () => Promise<void>
-  submitRequest: (input: { message: string; photoLabel?: string }) => string
+  submitRequest: (input: { message: string; id?: string; evidence?: Evidence[] }) => string
   acknowledge: (id: string) => void
   applyAi: (id: string, urgency: Urgency, reason?: string) => void
   assignVendor: (id: string, vendorId: string) => void
-  markDone: (id: string, afterLabel: string, cost?: number) => void
+  markDone: (id: string, after?: Evidence, cost?: number) => void
   verify: (id: string) => void
   rejectVerify: (id: string) => void
   markNoticeRead: (id: string) => void
@@ -214,8 +216,8 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
           notices: []
         }))
       },
-      submitRequest: ({ message, photoLabel }) => {
-        const id = nextId("req")
+      submitRequest: ({ message, id: requestedId, evidence }) => {
+        const id = requestedId ?? nextId("req")
         const createdAt = now()
         const suggestion = proposeFromMessage(message, state.requests)
         const record: RequestRecord = {
@@ -227,17 +229,7 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
           urgency: suggestion.urgency,
           status: "submitted",
           createdAt,
-          evidence: photoLabel
-            ? [
-                {
-                  id: nextId("evd"),
-                  kind: "before",
-                  label: "Before",
-                  caption: photoLabel,
-                  tone: suggestion.category === "lift" ? "lift" : "other"
-                }
-              ]
-            : [],
+          evidence: evidence ?? [],
           timeline: [
             {
               id: nextId("ev"),
@@ -248,12 +240,10 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
           ],
           ai: suggestion
         }
+        const draft = noticeDraft("submitted", record)
         const notice: Notice = {
+          ...draft,
           id: nextId("n"),
-          role: "staff",
-          title: `New request from ${record.flatId}`,
-          body: message.slice(0, 120),
-          requestId: id,
           at: createdAt,
           read: false
         }
@@ -303,8 +293,9 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
         })
       },
       assignVendor: (id, vendorId) => {
+        let assigned: RequestRecord | null = null
         patchRequest(id, (item) => {
-          return addEvent(
+          assigned = addEvent(
             {
               ...item,
               vendorId,
@@ -313,35 +304,58 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
             },
             "Assigned to vendor"
           )
+          return assigned
         })
+        if (assigned) {
+          const draft = noticeDraft("assigned", assigned)
+          const notice: Notice = {
+            ...draft,
+            id: nextId("n"),
+            at: now(),
+            read: false
+          }
+          setState((current) => ({
+            ...current,
+            notices: [notice, ...current.notices]
+          }))
+          void saveNotice(notice)
+        }
       },
-      markDone: (id, afterLabel, cost) => {
+      markDone: (id, after, cost) => {
+        let updated: RequestRecord | null = null
         patchRequest(id, (item) => {
-          return addEvent(
+          updated = addEvent(
             {
               ...item,
               status: "awaiting_verification",
               completedAt: now(),
               cost: cost ?? item.cost,
-              evidence: [
-                ...item.evidence,
-                {
-                  id: nextId("evd"),
-                  kind: "after",
-                  label: "After",
-                  caption: afterLabel,
-                  tone: item.category === "lift" ? "lift" : "other"
-                }
-              ]
+              evidence: after ? [...item.evidence, after] : item.evidence
             },
             "Work marked done — waiting for resident verify"
           )
+          return updated
         })
+        if (updated) {
+          const draft = noticeDraft("ready_to_verify", updated)
+          const notice: Notice = {
+            ...draft,
+            id: nextId("n"),
+            at: now(),
+            read: false
+          }
+          setState((current) => ({
+            ...current,
+            notices: [notice, ...current.notices]
+          }))
+          void saveNotice(notice)
+        }
       },
       verify: (id) => {
+        let closed: RequestRecord | null = null
         patchRequest(id, (item) => {
           if (item.status !== "awaiting_verification") return item
-          return addEvent(
+          closed = addEvent(
             {
               ...item,
               status: "verified_closed",
@@ -349,7 +363,29 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
             },
             "Resident verified — closed"
           )
+          return closed
         })
+        if (closed) {
+          const draft = noticeDraft("verified_closed", closed)
+          const notice: Notice = {
+            ...draft,
+            id: nextId("n"),
+            at: now(),
+            read: false
+          }
+          setState((current) => {
+            current.notices.forEach((row) => {
+              if (row.requestId === id && !row.read) {
+                void markNoticeReadRemote(row.id)
+              }
+            })
+            return {
+              ...current,
+              notices: [notice, ...markRequestNoticesRead(current.notices, id)]
+            }
+          })
+          void saveNotice(notice)
+        }
       },
       rejectVerify: (id) => {
         patchRequest(id, (item) => {

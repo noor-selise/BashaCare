@@ -2,21 +2,26 @@
 
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import type { FormEvent } from "react"
+import { useState, type FormEvent } from "react"
 import { AppShell } from "@/components/layout/app-shell"
 import { EvidenceStrip } from "@/components/requests/evidence-strip"
+import { EvidenceUpload } from "@/components/requests/evidence-upload"
+import { RequestContext } from "@/components/requests/request-context"
 import { StatusRail } from "@/components/requests/status-rail"
 import { AiPanel } from "@/components/triage/ai-panel"
 import { Button } from "@/components/ui/button"
+import { findPerson } from "@/data/directory"
 import { formatWhen, statusLabel, urgencyLabel } from "@/lib/format"
 import { formatTaka } from "@/lib/money"
-import { findPerson } from "@/data/directory"
 import { useBuilding } from "@/lib/store"
+import type { Evidence } from "@/types"
 
 const StaffRequestPage = () => {
   const { id } = useParams<{ id: string }>()
   const { requests, vendors, acknowledge, assignVendor, markDone, people } = useBuilding()
   const request = requests.find((item) => item.id === id)
+  const [afterEvidence, setAfterEvidence] = useState<Evidence | null>(null)
+  const [cost, setCost] = useState("")
 
   const handleAssign = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -26,11 +31,16 @@ const StaffRequestPage = () => {
 
   const handleDone = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const data = new FormData(event.currentTarget)
-    const caption = String(data.get("after") || "After photo")
-    const cost = Number(data.get("cost") || 0)
-    markDone(id, caption, cost || undefined)
+    const parsedCost = Number(cost || 0)
+    markDone(id, afterEvidence ?? undefined, parsedCost || undefined)
   }
+
+  const afterTone: Evidence["tone"] =
+    request?.category === "lift"
+      ? "lift"
+      : request?.category === "water" || request?.category === "plumbing"
+        ? "water"
+        : "other"
 
   return (
     <AppShell allow={["staff"]}>
@@ -48,6 +58,7 @@ const StaffRequestPage = () => {
               </p>
               <h1 className="font-display text-[32px] leading-tight">Triage</h1>
             </header>
+            <RequestContext request={request} people={people} />
             <StatusRail status={request.status} />
             <p className="font-bengali text-lg leading-relaxed">{request.message}</p>
             <EvidenceStrip items={request.evidence} />
@@ -77,16 +88,14 @@ const StaffRequestPage = () => {
               </select>
               <Button type="submit">Assign</Button>
             </form>
-            <form onSubmit={handleDone} className="grid gap-2 border border-hairline bg-surface p-4">
-              <label htmlFor="after">
-                After photo caption
-                <input
-                  id="after"
-                  name="after"
-                  className="mt-1 min-h-11 w-full border border-hairline px-3 text-[16px]"
-                  defaultValue="Work complete"
-                />
-              </label>
+            <form onSubmit={handleDone} className="grid gap-3 border border-hairline bg-surface p-4">
+              <EvidenceUpload
+                requestId={request.id}
+                kind="after"
+                tone={afterTone}
+                buttonLabel="Attach after photo"
+                onUploaded={setAfterEvidence}
+              />
               <label htmlFor="cost">
                 Cost (৳)
                 <input
@@ -94,6 +103,8 @@ const StaffRequestPage = () => {
                   name="cost"
                   type="number"
                   min={0}
+                  value={cost}
+                  onChange={(event) => setCost(event.target.value)}
                   className="mt-1 min-h-11 w-full border border-hairline px-3 text-[16px]"
                 />
               </label>

@@ -57,6 +57,8 @@ export type Evidence = {
   label: string
   caption: string
   tone: "lift" | "water" | "pump" | "other"
+  fileId?: string
+  mimeType?: string
 }
 
 export type TimelineEvent = {

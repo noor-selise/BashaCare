@@ -4,6 +4,7 @@ import Link from "next/link"
 import { useParams } from "next/navigation"
 import { AppShell } from "@/components/layout/app-shell"
 import { EvidenceStrip } from "@/components/requests/evidence-strip"
+import { RequestContext } from "@/components/requests/request-context"
 import { StatusRail } from "@/components/requests/status-rail"
 import { Button } from "@/components/ui/button"
 import { formatWhen, statusLabel } from "@/lib/format"
@@ -30,6 +31,7 @@ const ResidentRequestPage = () => {
             </p>
             <h1 className="font-display text-[32px] leading-tight">Request {request.id}</h1>
           </header>
+          <RequestContext request={request} people={people} />
           <StatusRail status={request.status} />
           <p className="max-w-2xl font-bengali text-lg leading-relaxed">{request.message}</p>
           <EvidenceStrip items={request.evidence} />

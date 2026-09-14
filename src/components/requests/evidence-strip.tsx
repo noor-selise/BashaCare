@@ -1,4 +1,8 @@
+"use client"
+
+import { useEffect, useState } from "react"
 import { cn } from "@/lib/cn"
+import { evidenceDownloadUrl } from "@/lib/blocks/evidence-storage"
 import type { Evidence } from "@/types"
 
 const toneClass = (tone: Evidence["tone"]) => {
@@ -18,6 +22,50 @@ const toneClass = (tone: Evidence["tone"]) => {
   }
 }
 
+const EvidenceThumbnail = ({ item }: { item: Evidence }) => {
+  const [imageUrl, setImageUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (!item.fileId) return
+
+    let active = true
+    void evidenceDownloadUrl(item.fileId).then((url) => {
+      if (active && url) setImageUrl(url)
+    })
+
+    return () => {
+      active = false
+    }
+  }, [item.fileId])
+
+  if (imageUrl) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element -- presigned Blocks storage URLs are tenant-specific and dynamic
+      <img
+        src={imageUrl}
+        alt={item.caption}
+        className="aspect-[4/3] w-full object-cover"
+        loading="lazy"
+      />
+    )
+  }
+
+  return (
+    <div
+      className={cn(
+        "flex aspect-[4/3] items-end bg-linear-to-br p-3 text-sm text-surface",
+        toneClass(item.tone)
+      )}
+      role="img"
+      aria-label={item.caption}
+    >
+      <span className="rounded-full bg-black/35 px-2 py-1 text-[11px] uppercase tracking-[0.08em]">
+        {item.label}
+      </span>
+    </div>
+  )
+}
+
 export const EvidenceStrip = ({ items }: { items: Evidence[] }) => {
   if (items.length === 0) {
     return <p className="text-sm text-ink-faint">No photo evidence yet.</p>
@@ -28,18 +76,7 @@ export const EvidenceStrip = ({ items }: { items: Evidence[] }) => {
       {items.map((item) => (
         <li key={item.id} className="overflow-hidden rounded-md border border-hairline bg-surface">
           <figure>
-            <div
-              className={cn(
-                "flex aspect-[4/3] items-end bg-linear-to-br p-3 text-sm text-surface",
-                toneClass(item.tone)
-              )}
-              role="img"
-              aria-label={item.caption}
-            >
-              <span className="rounded-full bg-black/35 px-2 py-1 text-[11px] uppercase tracking-[0.08em]">
-                {item.label}
-              </span>
-            </div>
+            <EvidenceThumbnail item={item} />
             <figcaption className="px-3 py-2 text-sm text-ink-soft">{item.caption}</figcaption>
           </figure>
         </li>
