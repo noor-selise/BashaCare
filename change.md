@@ -4,6 +4,7 @@ All changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Redeployed branch `dev` (build `39d5d97e-ae16-4b3b-b3ca-ebe8a662cf7e`, commit `5b20fe2`) to https://dbsblo.slsblx.com and https://dbsblo-eleit.slsblx.com (2026-09-14)
 - Rewrite README with standard structure: quick start, scripts, roles, routes, condensed testing (2026-09-14)
 - Show live building facts and registered flats on each role home, scoped by IAM role (2026-09-14)
 - Spec a role-scoped building/flats roster on each desk home, read-only from live Registration data (2026-09-14)
