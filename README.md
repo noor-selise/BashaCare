@@ -1,125 +1,138 @@
 # BashaCare
 
-Apartment maintenance desk for Uttara Heights. Next.js App Router. Product spec in `BRD.md`. Visual system in `DESIGN.md`.
+Apartment maintenance desk for **Uttara Heights** — a 48-flat building in Uttara, Dhaka. Residents report problems, staff triage and assign vendors, the committee tracks spend, and nothing closes until the resident verifies the work.
 
-```
+Built with **Next.js App Router** on **SELISE Blocks** (hosted login, Data, file storage).
+
+| Doc | Purpose |
+| --- | --- |
+| [`BRD.md`](./BRD.md) | Product requirements and locked decisions |
+| [`DESIGN.md`](./DESIGN.md) | Visual system (colors, type, urgency language) |
+| [`.design/basha-care/INFORMATION_ARCHITECTURE.md`](./.design/basha-care/INFORMATION_ARCHITECTURE.md) | Routes, nav, and user flows |
+
+## Prerequisites
+
+- Node.js 20+
+- [Blocks CLI](https://github.com/SELISEdigitalplatforms/blocks-cli): `npm install -g @seliseblocks/cli-os@latest`
+- Project access to tenant `D975c4874bd6b47b995cce54f926c09cc` (BashaCare, dev)
+
+## Quick start
+
+```bash
 npm install
 npm run check:seed
-npm run cert
+npm run cert          # first time on a machine
 npm run dev
 ```
 
-Open `https://dbsblo.slsblx.com` — not localhost. `npm run dev` starts Next on `127.0.0.1:3000` and the HTTPS proxy on 443. First sudo on a machine grants this Node binary `cap_net_bind_service` so later runs do not ask again. First time on a machine: add `127.0.0.1 dbsblo.slsblx.com` to `/etc/hosts`, then `npm run cert`.
+Open **`https://dbsblo.slsblx.com`** — not `localhost`.
 
-Blocks project is BashaCare (`D975c4874bd6b47b995cce54f926c09cc`). Fill `.env.local` from `blocks projects get` and `blocks auth oidc-clients list` only. The public OIDC callback is `https://dbsblo.slsblx.com/login/callback`.
+`npm run dev` runs Next.js on `127.0.0.1:3000` and an HTTPS proxy on port 443.
+
+**First time on a machine:**
+
+1. Add `127.0.0.1 dbsblo.slsblx.com` to `/etc/hosts`
+2. Run `npm run cert` (first run may ask for sudo to bind port 443)
+3. Copy env vars into `.env.local` from `blocks projects get` and `blocks auth oidc-clients list`
+4. Run `blocks init` in the repo root
+
+OIDC callback: `https://dbsblo.slsblx.com/login/callback`
+
+## Scripts
+
+| Command | Description |
+| --- | --- |
+| `npm run dev` | HTTPS dev server (Next + proxy) |
+| `npm run dev:next` | Next.js only on port 3000 (no HTTPS proxy) |
+| `npm run build` | Production build |
+| `npm run lint` | ESLint |
+| `npm run check:seed` | Verify demo seed data |
+| `npm run check:roster` | Verify building roster helpers |
+
+## Roles
+
+Each signed-in user needs a **Blocks IAM role** and a matching **`Person` row**. IAM role alone shows “No desk for this account”.
+
+| Role | Home | What they do |
+| --- | --- | --- |
+| **Admin** | `/committee` | Seed data, Registration, full desk access |
+| **Committee** | `/committee` | Spend desk, vendor performance, Registration |
+| **Staff** | `/staff` | Triage board, assign vendors, attach evidence |
+| **Resident** | `/resident` | Report problems, track status, verify closure |
+| **Vendor** | `/vendor` | Assigned jobs only — no finances |
+
+### Demo accounts
+
+Hosted login: `https://dbsblo.slsblx.com`
+
+| Email | Role | Notes |
+| --- | --- | --- |
+| `noor.mohammad@selisegroup.com` | admin | Live tenant admin |
+| `nusrat@yopmail.com` | resident | Flat 7-B |
+| `karim@yopmail.com` | resident | Flat 10-A · seeded emergency `req-10a-shaft` |
+| `hasan@yopmail.com` | staff | Caretaker |
+| `rina@yopmail.com` | committee | Treasurer |
+| `rafiq@yopmail.com` | vendor | Metro Lift AMC |
+| `rahman@yopmail.com` | vendor | Rahman Pump Service |
+
+Demo emails must be invited on the tenant with the matching IAM role and `Person` row (via `/committee/registry` or seed on first admin login).
+
+## Routes
+
+| Path | Access |
+| --- | --- |
+| `/` | Sign-in landing |
+| `/resident`, `/resident/new`, `/resident/requests/[id]` | Resident |
+| `/staff`, `/staff/requests/[id]` | Staff |
+| `/committee`, `/committee/vendors/[id]`, `/committee/decisions/[id]` | Committee, admin |
+| `/committee/registry` | Admin, committee — building, flats, people, vendors |
+| `/vendor`, `/vendor/jobs/[id]` | Vendor |
+| `/inbox` | Role-scoped alerts |
+| `/account` | All desk roles — profile, photo |
+
+## Building data
+
+| Surface | Who sees it |
+| --- | --- |
+| Header subtitle | All signed-in roles — live `Building.name` |
+| `/committee/registry` | Admin, committee — edit building record |
+| Resident home | Assigned flat only |
+| Staff board / Committee desk | Full flat roster (fee on committee desk only) |
+
+Admin seeds `Building`, `Flat`, and `Person` rows on first login when collections are empty.
+
+## Manual testing
+
+Sign out between personas. Full scripted cases are in **BRD §7 (FR-7)**.
+
+1. **Routine lift (7-B)** — Nusrat submits → Hasan triages and assigns → Rafiq uploads evidence → Hasan marks done → Nusrat verifies → Rina sees cost on desk.
+2. **Emergency shaft (10-A)** — Karim’s seeded request → Hasan acknowledges first → red banner stays until handled.
+3. **Pump story** — Rina’s desk shows six Rahman Pump repairs (৳38,500) and the replace decision.
+4. **Registration** — Admin or Rina edits building, adds a flat, invites a person.
+5. **Account** — Upload profile photo (required on hosted tenant), check `/inbox` lifecycle links.
+
+**Pass:** role always visible in header; wrong role redirects home; resident must verify before close; emergency visually distinct on staff board.
+
+## Project structure
 
 ```
-blocks init
+src/
+  app/           Next.js routes (one folder per role)
+  components/    layout, requests, triage, committee, ui
+  features/      board grouping, spend rollups, AI proposals
+  data/          seed data and checks
+  lib/           Blocks client, session, store
+  types/         domain types
+blocks/          Blocks CLI workspace (schemas, rules)
 ```
 
-## Folder structure
+Routes live in `src/app/<role>/`. Domain logic lives in `src/features/`. Pages stay thin.
 
-```
-BashaCare/
-  BRD.md DESIGN.md README.md     product + visual source of truth
-  .design/basha-care/            brief, IA, tokens, spec, tasks
-  blocks/                        Blocks CLI workspace
-  src/
-    app/                         routes — one folder per role URL
-    components/
-      layout/                    shell, header, emergency banner
-      requests/                  card, composer, evidence, status rail
-      triage/                    staff AI panel
-      committee/                 treasurer desk
-      ui/                        button, empty state
-    features/
-      requests/                  board grouping, status order
-      spend/                     vendor cost rollups
-      ai/                        category / urgency proposal
-    data/                        seeded building, seed check
-    lib/
-      blocks/                    single Blocks client
-      session/                   role home
-      store.tsx                  demo session + request lifecycle
-      format.ts money.ts cn.ts
-    types/                       domain types
-```
+## Blocks
 
-Routes stay in `src/app/<role>/`. Domain math stays in `src/features/`. Pages stay thin.
+- **Tenant:** `D975c4874bd6b47b995cce54f926c09cc`
+- **CLI account:** `noor` (`noor.mohammad@selisegroup.com`)
+- **App domain:** `https://dbsblo.slsblx.com`
+- **SDK:** `@seliseblocks/client` — never raw `fetch` to Blocks APIs
 
-## Building — where it shows and who sees it
-
-| Surface | URL | Viewer | What they see |
-|---------|-----|--------|---------------|
-| Signed-out landing | `/` | Anonymous visitor | Hardcoded civic notice board (`FALLBACK_BUILDING.name` → "BashaCare", address stamp "House 18 · Road 7 · Uttara"). No live `Building` row until sign-in. |
-| Desk header | All signed-in routes | Every desk role | `buildingInfo.name` from the `Building` schema (fallback "Uttara Heights"). Subtitle next to the BashaCare wordmark. |
-| Registration — Building panel | `/committee/registry` | **Admin**, **Committee** | Full building record: name, address, storeys, flat count, maintenance fee (৳). Editable and saved to Blocks Data. |
-| Resident home | `/resident` | **Resident** | Your-flat section: building name + address, assigned unit only (label, floor, occupancy). No fee. No other flats. |
-| Staff board | `/staff` | **Staff**, **Admin** | Flats section below routine: name, address, storeys, live registered count, every flat. No fee. |
-| Committee desk | `/committee` | **Committee**, **Admin** | Flats section after the three columns: name, address, storeys, live registered count, fee (৳), every flat. |
-| Vendor jobs | `/vendor` | **Vendor** | Flats on your jobs: building name + address, units that appear on assigned jobs only. No fee. |
-| Account | `/account` | Every desk role | Profile only; copy references Registration for flat/vendor changes. |
-
-**Who manages the building record?** Admin and committee via Registration. Admin also seeds `Building` / `Flat` / `Person` rows on first login when collections are empty.
-
-## Demo cast — users, roles, and what to test
-
-Hosted login at `https://dbsblo.slsblx.com`. Each account needs **both** a Blocks IAM role **and** a matching `Person` row. IAM role alone opens "No desk for this account".
-
-| Email | IAM role | Person | Home after login | Primary activities |
-|-------|----------|--------|------------------|-------------------|
-| `noor.mohammad@selisegroup.com` | `admin` | Live admin (not in seed cast) | `/committee` | Seed building data on first login; Registration (building, flats, people, vendors); Desk + Board + Alerts; full request visibility |
-| `noor@yopmail.com` | `admin` | Noor Mohammad · Admin | `/committee` | Same as admin (seed cast; use if invited on tenant) |
-| `nusrat@yopmail.com` | `resident` | Nusrat Rahman · Flat **7-B** | `/resident` | View own requests; **New request** with message + photo; watch status rail; **Verify work** when awaiting verification |
-| `karim@yopmail.com` | `resident` | Karim Hossain · Flat **10-A** | `/resident` | Same as resident; seeded **emergency** request `req-10a-shaft` (water in lift shaft) |
-| `hasan@yopmail.com` | `staff` | Hasan Mia · Caretaker | `/staff` | **Board**: emergencies → urgent → routine; open request → acknowledge → confirm/override AI → assign vendor → attach after photo + cost → mark done |
-| `rina@yopmail.com` | `committee` | Rina Chowdhury · Treasurer | `/committee` | **Desk**: open urgencies, slow vendors, spend by category/vendor, pump replace decision (six repairs · ৳38,500); Registration; read-only Board |
-| `rafiq@yopmail.com` | `vendor` | Rafiq Uddin · Metro Lift AMC | `/vendor` | Jobs assigned to **metro-lift** only; attach after photo; no finances or other vendors' work |
-| `rahman@yopmail.com` | `vendor` | Abdur Rahman · Rahman Pump Service | `/vendor` | Jobs assigned to **rahman-pump** only (seed includes six closed pump patches) |
-
-**Data isolation checks**
-
-- Resident sees only requests where `residentId` matches their email.
-- Resident roster shows only the assigned flat; staff/committee/admin see every registered flat; vendor sees only flats on assigned jobs.
-- Maintenance fee (৳) appears on committee/admin Desk roster only — never resident, vendor, or staff Board.
-- Vendor sees only requests where `vendorId` matches their vendor assignment.
-- Staff, committee, and admin see all requests; money fields hidden from resident and vendor cards.
-- Admin sees every notice in Alerts; other roles see `role: all` or their own role.
-
-## Manual test flows (BRD FR-7)
-
-Run at `https://dbsblo.slsblx.com`. Sign out between personas (header → Sign out).
-
-### A — Routine lift (flat 7-B)
-
-1. **Nusrat** (`nusrat@yopmail.com`) → `/resident` — open seeded lift emergency `req-7b-lift` or submit a new request from `/resident/new`.
-2. **Hasan** (`hasan@yopmail.com`) → `/staff` — emergency row pinned; open detail → **Acknowledge** → review AI panel → confirm or override urgency → **Assign** Metro Lift AMC.
-3. **Rafiq** (`rafiq@yopmail.com`) → `/vendor` — job appears → open → attach after photo → (staff marks done).
-4. **Hasan** → mark done with cost → status **Awaiting verification**.
-5. **Nusrat** → request detail → **Verify work** → **Verified closed**.
-6. **Rina** (`rina@yopmail.com`) → `/committee` — cost visible in vendor/spend rollups.
-
-### B — Emergency shaft leak (flat 10-A)
-
-1. **Karim** (`karim@yopmail.com`) → `/resident/requests/req-10a-shaft` — emergency message + before photo.
-2. **Hasan** → `/staff` — red emergency banner; acknowledge first; triage before routine queue.
-3. Continue assign → vendor → verify same lifecycle as A; emergency stays visually louder throughout.
-
-### C — Committee pump story (no new login steps)
-
-1. **Rina** → `/committee` — six Rahman Pump repairs totaling ৳38,500; **Replace the roof pump** decision on desk.
-2. Confirm vendor page shows repeat jobs and replace recommendation.
-
-### D — Registration and building edit
-
-1. **Admin or Rina** → `/committee/registry`.
-2. Edit **Building** panel (name, address, storeys, flats, fee) → Save → confirm header subtitle updates on next navigation.
-3. Add a flat; invite a test resident (creates IAM user + Person row); confirm People list shows Active/Pending.
-
-### E — Account and alerts
-
-1. Any role → `/account` — edit display name, title, profile photo (required on hosted tenant before save).
-2. **Hasan** → `/inbox` — staff alerts for new requests; link label follows live request status.
-3. After mark done → **Nusrat** inbox shows verify prompt.
-
-**Pass criteria:** role visible in header at all times; wrong role cannot stay on another role's URL (redirects to own home); resident cannot close without verify; emergency visually distinct on staff board; committee answers slow vendor + spend + open urgencies on one screen.
+See [`AGENTS.md`](./AGENTS.md) for Blocks skill routing and CLI rules.

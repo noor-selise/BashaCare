@@ -4,6 +4,7 @@ All changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Rewrite README with standard structure: quick start, scripts, roles, routes, condensed testing (2026-09-14)
 - Show live building facts and registered flats on each role home, scoped by IAM role (2026-09-14)
 - Spec a role-scoped building/flats roster on each desk home, read-only from live Registration data (2026-09-14)
 - Put desktop header on one row (brand · nav · account); keep mobile drawer for admin/committee/staff/vendor (2026-09-14)
