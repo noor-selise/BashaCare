@@ -282,6 +282,14 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
         })
       },
       applyAi: (id, urgency, reason) => {
+        const item = state.requests.find((row) => row.id === id)
+        if (!item || item.status === "verified_closed" || item.status === "rejected") return
+        const alreadyReviewed = item.timeline.some(
+          (event) =>
+            event.label === "AI suggestion confirmed" || event.label === "AI urgency overridden"
+        )
+        if (alreadyReviewed) return
+
         patchRequest(id, (item) => {
           const from = item.ai?.urgency ?? item.urgency
           const override = from === urgency

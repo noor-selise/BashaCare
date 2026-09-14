@@ -177,6 +177,8 @@ After invites: each person signs in once with **`Pass@123`**.
 
 ## Manual testing (QA checklist)
 
+**Full step-by-step checklists:** [`MANUAL-QA.md`](./MANUAL-QA.md)
+
 Sign out between each person. Password for every demo account: **`Pass@123`**.
 
 **Visual cues:** new submitted requests use **teal/courtyard** background + **New** badge. Unread alerts use the same teal wash + left bar.
