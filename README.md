@@ -98,17 +98,70 @@ Hosted login: `https://dbsblo.slsblx.com`
 
 | Email | Role | Demo persona |
 | --- | --- | --- |
-| `noor.mohammad@selisegroup.com` | admin | Tenant operator |
-| `nusrat@yopmail.com` | resident | Nusrat · Flat 7-B |
-| `karim@yopmail.com` | resident | Karim · Flat 10-A |
-| `hasan@yopmail.com` | staff | Hasan · Caretaker |
-| `rina@yopmail.com` | committee | Rina · Treasurer |
-| `rafiq@yopmail.com` | vendor | Rafiq · Metro Lift AMC |
-| `rahman@yopmail.com` | vendor | Abdur Rahman · Rahman Pump |
+| `noor@yopmail.com` | **admin** | Noor Mohammad · operator |
+| `nusrat@yopmail.com` | resident | Nusrat Rahman · Flat 7-B |
+| `karim@yopmail.com` | resident | Karim Hossain · Flat 10-A |
+| `hasan@yopmail.com` | staff | Hasan Mia · Caretaker |
+| `rina@yopmail.com` | committee | Rina Chowdhury · Treasurer |
+| `rafiq@yopmail.com` | vendor | Rafiq Uddin · Metro Lift AMC |
+| `rahman@yopmail.com` | vendor | Abdur Rahman · Rahman Pump Service |
+| `amin@yopmail.com` | vendor | Amin Hossain · Uttara Electric |
 
-Demo emails need IAM role + `Person` row (Registration or admin seed on first login).
+Each account needs **IAM role** (Blocks portal) **and** a matching **`Person` row** (Registration invite or admin seed on first login). Registration cannot invite `admin` — grant **`admin`** to `noor@yopmail.com` in the Blocks portal.
 
-**Password (all demo accounts above):** `Pass@123`
+**Password (every account in this table):** `Pass@123`
+
+### Fresh start — Registration (admin: `noor@yopmail.com`)
+
+Sign in → **Registration** (`/committee/registry`). Work top to bottom.
+
+**1. Building**
+
+| Field | Value |
+| --- | --- |
+| Name | Uttara Heights |
+| Address | House 18, Road 7, Uttara |
+| Storeys | 12 |
+| Flat count | 48 |
+| Maintenance fee (৳) | 2500 |
+
+**2. Flats** (add both)
+
+| Label | Floor | Status |
+| --- | --- | --- |
+| 7-B | 7 | Occupied |
+| 10-A | 10 | Occupied |
+
+**3. Vendors** (add all three — or confirm they already exist)
+
+| Name | Trade |
+| --- | --- |
+| Metro Lift AMC | Lift |
+| Rahman Pump Service | Water / pump |
+| Uttara Electric | Electrical |
+
+**4. People** (invite via Registration — **Confirm AI** happens later on the staff Board, not here)
+
+| Name | Email | IAM role (portal) | Registration fields |
+| --- | --- | --- | --- |
+| Noor Mohammad | `noor@yopmail.com` | **admin** (portal only) | — |
+| Nusrat Rahman | `nusrat@yopmail.com` | resident | Flat **7-B** |
+| Karim Hossain | `karim@yopmail.com` | resident | Flat **10-A** |
+| Hasan Mia | `hasan@yopmail.com` | staff | — |
+| Rina Chowdhury | `rina@yopmail.com` | committee | — |
+| Rafiq Uddin | `rafiq@yopmail.com` | vendor | Vendor **Metro Lift AMC** |
+| Abdur Rahman | `rahman@yopmail.com` | vendor | Vendor **Rahman Pump Service** |
+| Amin Hossain | `amin@yopmail.com` | vendor | Vendor **Uttara Electric** |
+
+After invites: each person signs in once with **`Pass@123`**.
+
+**5. Demo request flow (must include Confirm AI)**
+
+1. **Karim** — `/resident/new` → `bathroom light flickering, urgent — cannot see at night` → Submit.
+2. **Hasan or Noor (Board)** — open request → **Acknowledge now** → **Confirm AI** (or override urgency to **Urgent**) → **Assign** vendor (**Uttara Electric**).
+3. **Amin** — `/vendor` → job → **Mark done** + cost **850** ৳.
+4. **Karim** — `/inbox` → **Verify now** → **Verify work**.
+5. **Rina** — `/committee` → Uttara Electric spend includes 850 ৳; no Board in nav.
 
 ## Routes
 
@@ -135,13 +188,30 @@ Sign out between each person. Password for every demo account: **`Pass@123`**.
 | 1 | `karim@yopmail.com` | `/resident/new` → message → Submit | Lands on `/resident/requests/{uuid}` (not `req-…`) |
 | 2 | Karim | Back to `/resident` | Card shows **New** + teal background |
 | 3 | `hasan@yopmail.com` | `/staff` | Same request under board with **New** styling |
-| 4 | Hasan | Open request → **Acknowledge now** | Status Acknowledged |
-| 5 | Hasan | **Assign** vendor (Metro Lift for lift, Uttara Electric for water) | Vendor gets alert |
-| 6 | `rafiq@yopmail.com` | `/vendor` → open job | Job visible |
-| 7 | Hasan or Rafiq | **Mark done** + cost | Status Awaiting verification |
+| 4 | Hasan | Open request → **Acknowledge now** → **Confirm AI** | Status Acknowledged; AI confirmed |
+| 5 | Hasan | **Assign** vendor (Metro Lift → Rafiq; electrical/water → **Amin / Uttara Electric**) | Vendor gets alert |
+| 6 | `rafiq@yopmail.com` or `amin@yopmail.com` | `/vendor` → open job | Job visible |
+| 7 | Hasan or vendor | **Mark done** + cost (e.g. 850) | Status Awaiting verification; cost shows ৳850 |
 | 8 | Karim | `/inbox` → teal **New** alert → **Verify now** | Verify panel shows |
 | 9 | Karim | **Verify work** | Verified closed |
 | 10 | `rina@yopmail.com` | `/committee` | Cost on desk; **no Board** in nav |
+
+### Admin → urgent electrical (full operator path)
+
+Sign out between each person. Use message **without** “leak” (that triggers emergency):  
+`bathroom light flickering, urgent — cannot see at night`
+
+| Step | Login | Do | Pass if |
+| --- | --- | --- | --- |
+| 1 | `noor@yopmail.com` | `/committee/registry` | Building **Uttara Heights**, flats, vendors, people (see Fresh start) |
+| 2 | Admin | All eight people invited + IAM roles | Each shows **Active** in Registration |
+| 3 | `karim@yopmail.com` | `/resident/new` → message above → Submit | UUID detail; AI **urgent** (not emergency) |
+| 4 | `noor@yopmail.com` or Hasan | `/staff` → request under **Urgent** → **Confirm AI** | Teal **New**; AI confirmed |
+| 5 | Hasan | Acknowledge → assign **Uttara Electric** | Assigned |
+| 6 | `amin@yopmail.com` | `/vendor` → job → **Mark done** + **850** ৳ | Awaiting verification |
+| 7 | Karim | `/inbox` → **Verify now** → **Verify work** | Verified closed |
+| 8 | `rina@yopmail.com` | `/committee` | Uttara Electric spend includes 850; **no Board** |
+| 9 | Admin | Nav includes **Board** + Registration | Operator superset |
 
 ### Other FR-7 cases
 

@@ -349,7 +349,7 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
             ...item,
             status: "awaiting_verification",
             completedAt: now(),
-            cost: cost ?? item.cost,
+            cost: cost !== undefined ? cost : item.cost,
             evidence: after ? [...item.evidence, after] : item.evidence
           },
           "Work marked done — waiting for resident verify"

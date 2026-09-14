@@ -37,8 +37,13 @@ const StaffRequestPage = () => {
 
   const handleDone = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const parsedCost = Number(cost || 0)
-    markDone(id, afterEvidence ?? undefined, parsedCost || undefined)
+    const raw = new FormData(event.currentTarget).get("cost")
+    let parsedCost: number | undefined
+    if (raw !== null && String(raw).trim() !== "") {
+      const value = Number(raw)
+      if (Number.isFinite(value) && value >= 0) parsedCost = value
+    }
+    markDone(id, afterEvidence ?? undefined, parsedCost)
     toast.success("Marked done — waiting for resident to verify.")
   }
 

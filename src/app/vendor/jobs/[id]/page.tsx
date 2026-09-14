@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { useState } from "react"
+import { useState, type FormEvent } from "react"
 import { AppShell } from "@/components/layout/app-shell"
 import { EvidenceStrip } from "@/components/requests/evidence-strip"
 import { EvidenceUpload } from "@/components/requests/evidence-upload"
@@ -19,6 +19,19 @@ const VendorJobPage = () => {
   const toast = useToast()
   const job = visibleRequests().find((item) => item.id === id)
   const [afterEvidence, setAfterEvidence] = useState<Evidence | null>(null)
+  const [cost, setCost] = useState("")
+
+  const handleDone = (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    const raw = new FormData(event.currentTarget).get("cost")
+    let parsedCost: number | undefined
+    if (raw !== null && String(raw).trim() !== "") {
+      const value = Number(raw)
+      if (Number.isFinite(value) && value >= 0) parsedCost = value
+    }
+    markDone(job!.id, afterEvidence ?? undefined, parsedCost)
+    toast.success("Marked done — waiting for resident to verify.")
+  }
 
   const afterTone: Evidence["tone"] =
     job?.category === "lift"
@@ -42,7 +55,7 @@ const VendorJobPage = () => {
           <p className="font-bengali text-lg">{job.message}</p>
           <EvidenceStrip items={job.evidence} />
           {job.status === "assigned" || job.status === "in_progress" || job.status === "acknowledged" ? (
-            <div className="space-y-3">
+            <form onSubmit={handleDone} className="grid gap-3 border border-hairline bg-surface p-4">
               <EvidenceUpload
                 requestId={job.id}
                 kind="after"
@@ -50,15 +63,20 @@ const VendorJobPage = () => {
                 buttonLabel="Attach after photo"
                 onUploaded={setAfterEvidence}
               />
-              <Button
-                onClick={() => {
-                  markDone(job.id, afterEvidence ?? undefined)
-                  toast.success("Marked done — waiting for resident to verify.")
-                }}
-              >
-                Mark done — wait for verify
-              </Button>
-            </div>
+              <label htmlFor="vendor-cost">
+                Cost (৳)
+                <input
+                  id="vendor-cost"
+                  name="cost"
+                  type="number"
+                  min={0}
+                  value={cost}
+                  onChange={(event) => setCost(event.target.value)}
+                  className="mt-1 min-h-11 w-full border border-hairline px-3 text-[16px]"
+                />
+              </label>
+              <Button type="submit">Mark done — wait for verify</Button>
+            </form>
           ) : null}
           {job.status === "awaiting_verification" ? (
             <p className="border border-hairline bg-garden-wash p-4 text-ink">

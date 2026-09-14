@@ -183,6 +183,14 @@ export const seedCast: (Person & { role: Role })[] = [
     role: "vendor",
     vendorId: "rahman-pump",
     title: "Rahman Pump Service"
+  },
+  {
+    id: "amin@yopmail.com",
+    email: "amin@yopmail.com",
+    name: "Amin Hossain",
+    role: "vendor",
+    vendorId: "uttara-electric",
+    title: "Uttara Electric"
   }
 ]
 

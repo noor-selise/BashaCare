@@ -1,3 +1,4 @@
+import { proposeFromMessage } from "../features/ai/propose"
 import { PUMP_TOTAL, seedBuildingInfo, seedCast, seedFlats, seedPeople, seedRequests } from "./seed"
 
 const pumpJobs = seedRequests.filter((item) => item.equipmentId === "roof-pump")
@@ -19,8 +20,8 @@ if (openEmergency.length < 1) {
   throw new Error("expected an open emergency for the demo")
 }
 
-if (seedCast.length !== 7) {
-  throw new Error(`expected 7 seed cast members, got ${seedCast.length}`)
+if (seedCast.length !== 8) {
+  throw new Error(`expected 8 seed cast members, got ${seedCast.length}`)
 }
 
 if (seedPeople.length !== seedCast.length) {
@@ -39,4 +40,14 @@ if (seedBuildingInfo.name !== "Uttara Heights" || seedBuildingInfo.flatCount !==
   throw new Error("seed building info drifted from the BRD assumptions")
 }
 
-console.log("seed check ok: 6 pump jobs, ৳38,500, open emergency present")
+const urgentProposal = proposeFromMessage("lift jam again, urgent fix needed", [])
+if (urgentProposal.urgency !== "urgent") {
+  throw new Error(`expected urgent when resident says urgent, got ${urgentProposal.urgency}`)
+}
+
+const dripProposal = proposeFromMessage("bathroom tap dripping slowly", [])
+if (dripProposal.urgency === "emergency") {
+  throw new Error("slow drip should not auto-classify as emergency")
+}
+
+console.log("seed check ok: 6 pump jobs, ৳38,500, open emergency present, AI urgency sane")

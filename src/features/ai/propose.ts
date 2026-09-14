@@ -24,12 +24,13 @@ export const proposeFromMessage = (
             : "other"
 
   const isEmergency = /shaft|fire|trapped|bonna|namte parsi na|leak/.test(text)
-  const claimsEmergency = /emergency|urgent/.test(text)
+  const claimsEmergency = /\bemergency\b/.test(text)
+  const claimsUrgent = /\burgent\b/.test(text)
   const urgency: Urgency = isEmergency
     ? "emergency"
     : claimsEmergency
       ? "emergency"
-      : /jam|kharap|again/.test(text)
+      : claimsUrgent || /jam|kharap|again/.test(text)
         ? "urgent"
         : "routine"
 
@@ -37,7 +38,11 @@ export const proposeFromMessage = (
     ? "Message describes a life-safety or structural risk (leak, trapped, shaft)."
     : claimsEmergency
       ? "Resident labelled this an emergency. Staff should confirm — intermittent lift faults are often urgent, not emergency."
-      : "No life-safety language. Queue as routine or urgent by delay."
+      : claimsUrgent
+        ? "Resident marked urgent — not life-safety. Staff should confirm priority."
+        : /jam|kharap|again/.test(text)
+          ? "Repeat or blocking fault language — queue as urgent unless staff downgrade."
+          : "No life-safety language. Queue as routine or urgent by delay."
 
   const equipmentHits = history.filter((item) => {
     return item.equipmentId && item.status === "verified_closed"
