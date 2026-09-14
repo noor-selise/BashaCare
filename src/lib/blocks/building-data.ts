@@ -1,7 +1,7 @@
-import { seedDecisions, seedNotices, seedRequests } from "@/data/seed"
+import { seedBuildingInfo, seedDecisions, seedFlats, seedNotices, seedPeople, seedRequests } from "@/data/seed"
 import { vendors as directoryVendors } from "@/data/directory"
 import { getBlocksClient } from "@/lib/blocks/client"
-import type { Decision, Notice, RequestRecord, Vendor } from "@/types"
+import type { BuildingInfo, Decision, Flat, Notice, Person, RequestRecord, Vendor } from "@/types"
 
 type RequestRow = Record<string, unknown> & {
   itemId?: string
@@ -92,6 +92,67 @@ const requestToRow = (item: RequestRecord) => {
   }
 }
 
+type BuildingRow = Record<string, unknown> & {
+  itemId?: string
+  ItemId?: string
+  name?: string
+  addressLine?: string
+  storeys?: number
+  flatCount?: number
+  fee?: number
+}
+
+const buildingFromRow = (row: BuildingRow): BuildingInfo => ({
+  id: rowId(row),
+  name: String(row.name ?? ""),
+  addressLine: String(row.addressLine ?? ""),
+  storeys: typeof row.storeys === "number" ? row.storeys : 0,
+  flatCount: typeof row.flatCount === "number" ? row.flatCount : 0,
+  fee: typeof row.fee === "number" ? row.fee : 0
+})
+
+const buildingToRow = (item: Omit<BuildingInfo, "id">) => ({
+  name: item.name,
+  addressLine: item.addressLine,
+  storeys: item.storeys,
+  flatCount: item.flatCount,
+  fee: item.fee
+})
+
+type FlatRow = Record<string, unknown> & {
+  itemId?: string
+  ItemId?: string
+  label?: string
+  floor?: number
+  status?: Flat["status"]
+}
+
+const flatFromRow = (row: FlatRow): Flat => ({
+  id: String(row.label ?? rowId(row)),
+  label: String(row.label ?? ""),
+  floor: typeof row.floor === "number" ? row.floor : 0,
+  status: (row.status ?? "occupied") as Flat["status"]
+})
+
+type PersonRow = Record<string, unknown> & {
+  itemId?: string
+  ItemId?: string
+  email?: string
+  name?: string
+  title?: string
+  flatId?: string
+  vendorId?: string
+}
+
+const personFromRow = (row: PersonRow): Person => ({
+  id: String(row.email ?? rowId(row)),
+  email: String(row.email ?? ""),
+  name: String(row.name ?? ""),
+  title: String(row.title ?? ""),
+  flatId: row.flatId ? String(row.flatId) : undefined,
+  vendorId: row.vendorId ? String(row.vendorId) : undefined
+})
+
 const listItems = <T,>(response: unknown, key: string): T[] => {
   const record = response as {
     data?: Record<string, { items?: T[] }>
@@ -103,7 +164,15 @@ const listItems = <T,>(response: unknown, key: string): T[] => {
 export const loadBuildingRecords = async () => {
   const client = getBlocksClient()
   if (!client) {
-    return { requests: [] as RequestRecord[], decisions: [] as Decision[], notices: [] as Notice[], vendors: directoryVendors }
+    return {
+      requests: [] as RequestRecord[],
+      decisions: [] as Decision[],
+      notices: [] as Notice[],
+      vendors: directoryVendors,
+      flats: seedFlats,
+      people: seedPeople,
+      buildingInfo: seedBuildingInfo
+    }
   }
 
   const requestsApi = client.data.collection<RequestRow>("Request", {
@@ -139,12 +208,24 @@ export const loadBuildingRecords = async () => {
   const vendorsApi = client.data.collection<Vendor & { itemId?: string; slug?: string }>("Vendor", {
     fields: ["name", "trade"]
   })
+  const buildingApi = client.data.collection<BuildingRow>("Building", {
+    fields: ["name", "addressLine", "storeys", "flatCount", "fee"]
+  })
+  const flatsApi = client.data.collection<FlatRow>("Flat", {
+    fields: ["label", "floor", "status"]
+  })
+  const peopleApi = client.data.collection<PersonRow>("Person", {
+    fields: ["email", "name", "title", "flatId", "vendorId"]
+  })
 
-  const [requestRes, decisionRes, noticeRes, vendorRes] = await Promise.all([
+  const [requestRes, decisionRes, noticeRes, vendorRes, buildingRes, flatRes, personRes] = await Promise.all([
     requestsApi.list({ pageNo: 1, pageSize: 100 }),
     decisionsApi.list({ pageNo: 1, pageSize: 50 }),
     noticesApi.list({ pageNo: 1, pageSize: 50 }),
-    vendorsApi.list({ pageNo: 1, pageSize: 20 })
+    vendorsApi.list({ pageNo: 1, pageSize: 20 }),
+    buildingApi.list({ pageNo: 1, pageSize: 1 }),
+    flatsApi.list({ pageNo: 1, pageSize: 100 }),
+    peopleApi.list({ pageNo: 1, pageSize: 200 })
   ])
 
   const vendorRows = listItems<Vendor & { itemId?: string; name?: string }>(vendorRes, "getVendors")
@@ -158,6 +239,15 @@ export const loadBuildingRecords = async () => {
         }
       })
     : directoryVendors
+
+  const buildingRows = listItems<BuildingRow>(buildingRes, "getBuildings")
+  const buildingInfo = buildingRows.length ? buildingFromRow(buildingRows[0]) : seedBuildingInfo
+
+  const flatRows = listItems<FlatRow>(flatRes, "getFlats")
+  const flats = flatRows.length ? flatRows.map(flatFromRow) : seedFlats
+
+  const personRows = listItems<PersonRow>(personRes, "getPersons")
+  const people = personRows.length ? personRows.map(personFromRow) : seedPeople
 
   return {
     requests: listItems<RequestRow>(requestRes, "getRequests").map(requestFromRow),
@@ -179,7 +269,10 @@ export const loadBuildingRecords = async () => {
       at: String(row.at ?? ""),
       read: Boolean(row.read)
     })),
-    vendors
+    vendors,
+    flats,
+    people,
+    buildingInfo
   }
 }
 
@@ -195,9 +288,28 @@ export const seedBuildingRecords = async () => {
   const vendorsApi = client.data.collection("Vendor")
   const decisionsApi = client.data.collection("Decision")
   const noticesApi = client.data.collection("Notice")
+  const buildingApi = client.data.collection("Building")
+  const flatsApi = client.data.collection("Flat")
+  const peopleApi = client.data.collection("Person")
 
   for (const vendor of directoryVendors) {
     await vendorsApi.create({ name: vendor.name, trade: vendor.trade })
+  }
+
+  await buildingApi.create(buildingToRow(seedBuildingInfo))
+
+  for (const flat of seedFlats) {
+    await flatsApi.create({ label: flat.label, floor: flat.floor, status: flat.status })
+  }
+
+  for (const person of seedPeople) {
+    await peopleApi.create({
+      email: person.email,
+      name: person.name,
+      title: person.title,
+      flatId: person.flatId ?? "",
+      vendorId: person.vendorId ?? ""
+    })
   }
 
   for (const item of seedRequests) {
@@ -261,4 +373,41 @@ export const markNoticeReadRemote = async (id: string) => {
   const client = getBlocksClient()
   if (!client || id.startsWith("n-")) return
   await client.data.collection("Notice").update(id, { read: true })
+}
+
+export const addFlat = async (input: { label: string; floor: number }): Promise<Flat> => {
+  const flat: Flat = { id: input.label, label: input.label, floor: input.floor, status: "occupied" }
+  const client = getBlocksClient()
+  if (!client) return flat
+  await client.data.collection("Flat").create({ label: input.label, floor: input.floor, status: "occupied" })
+  return flat
+}
+
+export const saveBuildingInfo = async (
+  input: Omit<BuildingInfo, "id">,
+  existingId?: string
+): Promise<BuildingInfo> => {
+  const client = getBlocksClient()
+  if (!client) return { ...input, id: existingId }
+  const api = client.data.collection("Building")
+  if (existingId) {
+    await api.update(existingId, buildingToRow(input))
+    return { ...input, id: existingId }
+  }
+  const created = (await api.create(buildingToRow(input))) as { itemId?: string; data?: { itemId?: string } }
+  return { ...input, id: created.itemId ?? created.data?.itemId }
+}
+
+export const savePerson = async (input: Omit<Person, "id">): Promise<Person> => {
+  const person: Person = { ...input, id: input.email }
+  const client = getBlocksClient()
+  if (!client) return person
+  await client.data.collection("Person").create({
+    email: input.email,
+    name: input.name,
+    title: input.title,
+    flatId: input.flatId ?? "",
+    vendorId: input.vendorId ?? ""
+  })
+  return person
 }
