@@ -411,3 +411,11 @@ export const savePerson = async (input: Omit<Person, "id">): Promise<Person> => 
   })
   return person
 }
+
+export const addVendor = async (input: { name: string; trade: string }): Promise<Vendor> => {
+  const vendor: Vendor = { id: input.name.toLowerCase().replace(/\s+/g, "-"), name: input.name, trade: input.trade }
+  const client = getBlocksClient()
+  if (!client) return vendor
+  await client.data.collection("Vendor").create({ name: input.name, trade: input.trade })
+  return vendor
+}

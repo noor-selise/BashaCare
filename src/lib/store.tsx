@@ -18,6 +18,7 @@ import {
 import { useAuth } from "@/lib/blocks/auth-context"
 import {
   addFlat as addFlatRecord,
+  addVendor as addVendorRecord,
   loadBuildingRecords,
   markNoticeReadRemote,
   saveBuildingInfo,
@@ -64,6 +65,7 @@ type BuildingApi = BuildingState & {
   addFlat: (input: { label: string; floor: number }) => Promise<void>
   updateBuildingInfo: (input: Omit<BuildingInfo, "id">) => Promise<void>
   invitePerson: (input: InviteInput) => Promise<void>
+  addVendor: (input: { name: string; trade: string }) => Promise<void>
 }
 
 const BuildingContext = createContext<BuildingApi | null>(null)
@@ -371,6 +373,10 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
       invitePerson: async (input) => {
         const person = await invitePersonRecord(input)
         setState((current) => ({ ...current, people: [...current.people, person] }))
+      },
+      addVendor: async (input) => {
+        const vendor = await addVendorRecord(input)
+        setState((current) => ({ ...current, vendors: [...current.vendors, vendor] }))
       },
       visibleRequests
     }
