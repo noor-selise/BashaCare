@@ -30,6 +30,7 @@ export const PeoplePanel = ({
   const [flatId, setFlatId] = useState("")
   const [vendorId, setVendorId] = useState("")
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
   const [status, setStatus] = useState<Record<string, "pending" | "active" | "unknown">>({})
 
   useEffect(() => {
@@ -46,6 +47,7 @@ export const PeoplePanel = ({
     event.preventDefault()
     if (!name.trim() || !email.trim()) return
     setSaving(true)
+    setError(null)
     try {
       await onInvite({
         name: name.trim(),
@@ -56,6 +58,8 @@ export const PeoplePanel = ({
       })
       setName("")
       setEmail("")
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not invite this person.")
     } finally {
       setSaving(false)
     }
@@ -151,6 +155,14 @@ export const PeoplePanel = ({
             </label>
           ) : null}
         </div>
+        {error ? (
+          <p
+            className="border border-terracotta bg-terracotta-wash px-4 py-3 text-sm text-terracotta-deep"
+            role="alert"
+          >
+            {error}
+          </p>
+        ) : null}
         <Button type="submit" disabled={saving}>
           {saving ? "Inviting…" : "Invite person"}
         </Button>

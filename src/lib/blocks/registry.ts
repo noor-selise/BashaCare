@@ -21,9 +21,14 @@ export const invitePerson = async (input: InviteInput): Promise<Person> => {
       roles: [input.role]
     })) as { userId?: string; itemId?: string; data?: { userId?: string; itemId?: string } }
     const userId = created.userId ?? created.itemId ?? created.data?.userId ?? created.data?.itemId
-    if (userId) {
-      await client.iam.users.updateAccess({ userId, roles: [input.role] })
+    // Fail loudly rather than writing a Person row for an account that never got its role —
+    // that user would otherwise log in to "No desk for this account" with no diagnostic.
+    if (!userId) {
+      throw new Error(
+        "Could not determine the new user's id from IAM's response — invite did not complete. No Person row was created."
+      )
     }
+    await client.iam.users.updateAccess({ userId, roles: [input.role] })
   }
 
   return savePerson({

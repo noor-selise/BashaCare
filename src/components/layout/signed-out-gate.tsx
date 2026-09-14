@@ -57,7 +57,6 @@ export const GateFrame = ({ children }: { children: ReactNode }) => {
         <div className="mx-auto flex max-w-[1200px] flex-col gap-2 px-4 py-4 md:flex-row md:items-baseline md:justify-between md:px-8">
           <div className="flex items-baseline gap-3">
             <p className="font-display text-xl">BashaCare</p>
-            <p className="text-sm text-ink-faint">{FALLBACK_BUILDING.name}</p>
           </div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-courtyard">
             One building · one desk

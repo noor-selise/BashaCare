@@ -19,10 +19,12 @@ export const BuildingPanel = ({
   const [flatCount, setFlatCount] = useState(String(buildingInfo?.flatCount ?? ""))
   const [fee, setFee] = useState(String(buildingInfo?.fee ?? ""))
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     setSaving(true)
+    setError(null)
     try {
       await onSave({
         name,
@@ -31,6 +33,8 @@ export const BuildingPanel = ({
         flatCount: Number(flatCount) || 0,
         fee: Number(fee) || 0
       })
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not save the building.")
     } finally {
       setSaving(false)
     }
@@ -100,6 +104,14 @@ export const BuildingPanel = ({
           />
         </label>
       </div>
+      {error ? (
+        <p
+          className="border border-terracotta bg-terracotta-wash px-4 py-3 text-sm text-terracotta-deep"
+          role="alert"
+        >
+          {error}
+        </p>
+      ) : null}
       <Button type="submit" disabled={saving}>
         {saving ? "Saving…" : "Save building"}
       </Button>

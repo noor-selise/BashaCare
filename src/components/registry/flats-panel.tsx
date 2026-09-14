@@ -16,15 +16,19 @@ export const FlatsPanel = ({
   const [label, setLabel] = useState("")
   const [floor, setFloor] = useState("")
   const [saving, setSaving] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     if (!label.trim()) return
     setSaving(true)
+    setError(null)
     try {
       await onAdd({ label: label.trim(), floor: Number(floor) || 0 })
       setLabel("")
       setFloor("")
+    } catch (caught) {
+      setError(caught instanceof Error ? caught.message : "Could not add the flat.")
     } finally {
       setSaving(false)
     }
@@ -72,6 +76,14 @@ export const FlatsPanel = ({
           {saving ? "Adding…" : "Add flat"}
         </Button>
       </form>
+      {error ? (
+        <p
+          className="mt-4 border border-terracotta bg-terracotta-wash px-4 py-3 text-sm text-terracotta-deep"
+          role="alert"
+        >
+          {error}
+        </p>
+      ) : null}
     </section>
   )
 }
