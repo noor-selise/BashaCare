@@ -76,6 +76,13 @@ const nextId = (prefix: string) => {
 
 const now = () => new Date().toISOString()
 
+// seedBuildingRecords()'s per-collection "already seeded?" check races itself when this
+// provider's auth effect fires more than once for the same page load (React Strict Mode's
+// double effect invocation, a remount, rapid auth-state churn) — each firing can see an empty
+// collection before the other's writes land, and both then create a full set of seed rows.
+// One attempt per page load is enough; a full reload resets this and tries again if it failed.
+let seedAttempted = false
+
 export const BuildingProvider = ({ children }: { children: ReactNode }) => {
   const { status, claims, roles, logout } = useAuth()
   const [state, setState] = useState<BuildingState>({
@@ -117,7 +124,8 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
 
     const load = async () => {
       try {
-        if (role === "admin") {
+        if (role === "admin" && !seedAttempted) {
+          seedAttempted = true
           await seedBuildingRecords()
         }
         const records = await loadBuildingRecords()

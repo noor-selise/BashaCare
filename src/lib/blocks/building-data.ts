@@ -161,6 +161,20 @@ const listItems = <T,>(response: unknown, key: string): T[] => {
   return record.data?.[key]?.items ?? record.items ?? []
 }
 
+// Blocks Data's `isUniqueData` schema flag is not a server-enforced constraint — concurrent
+// or repeated writes (e.g. the admin seed race below) can leave multiple live rows sharing the
+// same label/email. Collapse those to one row per key before they reach the UI, since every
+// consumer derives an app-level id from that key and duplicates would collide as React keys.
+const dedupeByKey = <T,>(items: T[], keyOf: (item: T) => string): T[] => {
+  const seen = new Set<string>()
+  return items.filter((item) => {
+    const key = keyOf(item).toLowerCase()
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
 type MutationEnvelope = {
   data?: Record<string, { acknowledged?: boolean; itemId?: string; message?: string } | undefined>
   errors?: { message?: string }[]
@@ -277,12 +291,12 @@ export const loadBuildingRecords = async () => {
   // Seed rows are a durable baseline, not an "empty collection" placeholder: merge them in
   // behind the live rows so one real registration never collapses the demo roster.
   const flatRows = listItems<FlatRow>(flatRes, "getFlats")
-  const liveFlats = flatRows.map(flatFromRow)
+  const liveFlats = dedupeByKey(flatRows.map(flatFromRow), (item) => item.label)
   const liveFlatLabels = new Set(liveFlats.map((item) => item.label.toLowerCase()))
   const flats = [...liveFlats, ...seedFlats.filter((item) => !liveFlatLabels.has(item.label.toLowerCase()))]
 
   const personRows = listItems<PersonRow>(personRes, "getPersons")
-  const livePeople = personRows.map(personFromRow)
+  const livePeople = dedupeByKey(personRows.map(personFromRow), (item) => item.email)
   const livePersonEmails = new Set(livePeople.map((item) => item.email.toLowerCase()))
   const people = [...livePeople, ...seedPeople.filter((item) => !livePersonEmails.has(item.email.toLowerCase()))]
 
