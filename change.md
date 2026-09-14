@@ -4,7 +4,10 @@ All changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-- Extend Account profile for all desk roles with required profile photo upload via Blocks storage (2026-09-14)
+- Spec a role-scoped building/flats roster on each desk home, read-only from live Registration data (2026-09-14)
+- Collapse admin/committee/staff/vendor nav into a mobile drawer so five-item headers no longer wrap; surface clearer file-storage errors on upload (2026-09-14)
+- Document building surfaces, demo cast roles, and FR-7 manual test flows in README; revalidate BRD auth/feasibility rows after IAM roles and Registration shipped (2026-09-14)
+- Fix Registration People list IAM status parsing (`data[]` + `active`) so rows show Active/Pending instead of Unknown (2026-09-14)
 - Add self-service profile editing on Account for every desk role; name and title update the Person row and header (2026-09-14)
 - Redeployed branch `dev` (build `bdca92b9-7f74-4459-9985-17da23dafcec`, commit `d533e43`) to https://dbsblo.slsblx.com and https://dbsblo-eleit.slsblx.com (2026-09-14)
 - Add Blocks photo upload for request evidence, show who requested on triage detail pages, lifecycle-aware inbox links, and clearer awaiting-verification state on staff triage (2026-09-14)
