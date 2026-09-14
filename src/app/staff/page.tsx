@@ -1,15 +1,25 @@
 "use client"
 
+import { BuildingRoster } from "@/components/building/building-roster"
 import { AppShell } from "@/components/layout/app-shell"
 import { RequestCard } from "@/components/requests/request-card"
 import { RequestList } from "@/components/requests/request-list"
 import { EmptyState } from "@/components/ui/empty-state"
+import { uniqueFlatIds, visibleFlats } from "@/features/building/roster"
 import { groupOpenBoard } from "@/features/requests/board"
-import { useBuilding } from "@/lib/store"
+import { useBuilding, useSessionActor } from "@/lib/store"
 
 const StaffBoard = () => {
-  const { visibleRequests } = useBuilding()
-  const { emergencies, urgent, routine } = groupOpenBoard(visibleRequests())
+  const actor = useSessionActor()
+  const { visibleRequests, flats, buildingInfo, session } = useBuilding()
+  const requests = visibleRequests()
+  const { emergencies, urgent, routine } = groupOpenBoard(requests)
+  const roster = visibleFlats({
+    role: session?.role ?? "staff",
+    actorFlatId: actor?.flatId,
+    flats,
+    assignedFlatIds: uniqueFlatIds(requests)
+  })
 
   return (
     <AppShell allow={["staff"]}>
@@ -46,6 +56,9 @@ const StaffBoard = () => {
             ))}
           </RequestList>
         </section>
+      </div>
+      <div className="mt-10">
+        <BuildingRoster role={session?.role ?? "staff"} buildingInfo={buildingInfo} flats={roster} />
       </div>
     </AppShell>
   )
