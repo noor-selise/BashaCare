@@ -38,7 +38,7 @@
 | `src/lib/blocks/registry.ts` | Create | `invitePerson()` (IAM create + updateAccess + Person row), `listAccessStatus()` |
 | `src/lib/store.tsx` | Modify | New state (`buildingInfo`, `flats`, `people`), new actions (`addFlat`, `updateBuildingInfo`, `invitePerson`), role resolution via `demoRoleFromEmail` |
 | `src/lib/session/role-home.ts` | Modify | Swap `personFromEmail(email)?.role` fallback for `demoRoleFromEmail(email)` |
-| `src/app/page.tsx`, `src/app/login/page.tsx`, `src/app/login/callback/page.tsx` | Modify | Same fallback swap at call sites |
+| `src/components/layout/signed-out-gate.tsx` | Modify | Swap `BUILDING` import/usages for `FALLBACK_BUILDING` (the only file that references `BUILDING` as of plan-writing time — `src/app/page.tsx` delegates rendering to this component and does not reference `BUILDING` itself) |
 | `src/components/layout/site-header.tsx` | Modify | Dynamic building name; nav link to Registry for committee/admin |
 | `src/app/committee/registry/page.tsx` | Create | The registration screen (gated `allow={["committee"]}`) |
 | `src/components/registry/building-panel.tsx` | Create | Edit Building info |
@@ -268,9 +268,7 @@ git commit -m "feat(seed): add seed cast, flats, and building info"
 **Files:**
 - Modify: `src/data/directory.ts`
 - Modify: `src/lib/session/role-home.ts`
-- Modify: `src/app/page.tsx`
-- Modify: `src/app/login/page.tsx`
-- Modify: `src/app/login/callback/page.tsx`
+- Modify: `src/components/layout/signed-out-gate.tsx`
 
 **Interfaces:**
 - Consumes: `seedCast` (Task 2)
@@ -373,9 +371,9 @@ export const deskPathFromAuth = (roles: string[], email?: string | null) => {
 }
 ```
 
-- [ ] **Step 3: Update the three call sites' imports of `BUILDING`**
+- [ ] **Step 3: Update the `BUILDING` call site**
 
-In `src/app/page.tsx`, replace:
+`BUILDING` is referenced in exactly one file as of plan-writing time: `src/components/layout/signed-out-gate.tsx` (the pre-auth "civic notice board" landing that `src/app/page.tsx` renders — `page.tsx` itself does not import `BUILDING`). In `src/components/layout/signed-out-gate.tsx`, replace:
 
 ```ts
 import { BUILDING } from "@/data/directory"
@@ -387,17 +385,17 @@ with:
 import { FALLBACK_BUILDING } from "@/data/directory"
 ```
 
-and replace every `BUILDING.name` / `BUILDING.line` reference in that file's pre-auth hero (the `<h1>{BUILDING.name}</h1>` and the `<p>{BUILDING.line}</p>`) with `FALLBACK_BUILDING.name` / `FALLBACK_BUILDING.line`. `src/app/login/page.tsx` and `src/app/login/callback/page.tsx` only import `deskPathFromAuth`, not `BUILDING` — no change needed there beyond what `role-home.ts` already fixed underneath them.
+and replace every `BUILDING.name` / `BUILDING.line` reference with `FALLBACK_BUILDING.name` / `FALLBACK_BUILDING.line` — three call sites: the `GateFrame` header subtitle (`<p className="text-sm text-ink-faint">{BUILDING.name}</p>`), the hero `<h1>{BUILDING.name}</h1>` in `SignedOutGate`, and the footer note `<p ...>{BUILDING.line}</p>`. Leave the separate hardcoded `"House 18 · Road 7 · Uttara"` string as-is — it is not derived from `BUILDING` today and this task does not change that. `src/app/page.tsx`, `src/app/login/page.tsx`, and `src/app/login/callback/page.tsx` only call `deskPathFromAuth` — no change needed there beyond what `role-home.ts` already fixed underneath them.
 
 - [ ] **Step 4: Type-check**
 
 Run: `npx tsc --noEmit`
-Expected: new errors in `src/lib/store.tsx` (`personFromEmail`/`findPerson` now require a second argument, `people` import no longer exists) — that's Task 6. No errors should remain in `directory.ts`, `role-home.ts`, or `page.tsx`.
+Expected: new errors in `src/lib/store.tsx` (`personFromEmail`/`findPerson` now require a second argument, `people` import no longer exists) — that's Task 7. No errors should remain in `directory.ts`, `role-home.ts`, or `signed-out-gate.tsx`.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add src/data/directory.ts src/lib/session/role-home.ts src/app/page.tsx
+git add src/data/directory.ts src/lib/session/role-home.ts src/components/layout/signed-out-gate.tsx
 git commit -m "feat(directory): replace hardcoded roster with Person-list lookups"
 ```
 
