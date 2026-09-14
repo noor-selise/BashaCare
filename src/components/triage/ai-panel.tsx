@@ -1,8 +1,10 @@
 "use client"
 
+import { motion } from "framer-motion"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { categoryLabel, urgencyLabel } from "@/lib/format"
+import { fadeRise } from "@/lib/motion"
 import { useBuilding } from "@/lib/store"
 import type { RequestRecord, Urgency } from "@/types"
 
@@ -18,7 +20,12 @@ export const AiPanel = ({ request }: { request: RequestRecord }) => {
   }
 
   return (
-    <section className="border border-hairline bg-surface-2 p-4">
+    <motion.section
+      initial="hidden"
+      animate="visible"
+      variants={fadeRise}
+      className="border border-hairline bg-surface-2 p-4"
+    >
       <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint">
         AI suggestion — staff must confirm
       </p>
@@ -73,6 +80,6 @@ export const AiPanel = ({ request }: { request: RequestRecord }) => {
           </p>
         ) : null}
       </div>
-    </section>
+    </motion.section>
   )
 }

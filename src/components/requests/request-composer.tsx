@@ -1,8 +1,10 @@
 "use client"
 
+import { motion } from "framer-motion"
 import { useRouter } from "next/navigation"
 import { useState, type FormEvent } from "react"
 import { Button } from "@/components/ui/button"
+import { fadeRise } from "@/lib/motion"
 import { useBuilding } from "@/lib/store"
 
 export const RequestComposer = () => {
@@ -22,7 +24,13 @@ export const RequestComposer = () => {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 border border-hairline bg-surface p-4 md:p-6">
+    <motion.form
+      onSubmit={handleSubmit}
+      initial="hidden"
+      animate="visible"
+      variants={fadeRise}
+      className="space-y-4 border border-hairline bg-surface p-4 md:p-6"
+    >
       <label className="block" htmlFor="message">
         <span className="text-[11px] font-semibold uppercase tracking-[0.08em] text-ink-faint">
           What is happening
@@ -50,6 +58,6 @@ export const RequestComposer = () => {
         />
       </label>
       <Button type="submit">Submit request</Button>
-    </form>
+    </motion.form>
   )
 }

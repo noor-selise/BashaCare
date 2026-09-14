@@ -1,4 +1,6 @@
+import { motion } from "framer-motion"
 import { Button } from "@/components/ui/button"
+import { fadeRise } from "@/lib/motion"
 
 type EmptyStateProps = {
   title: string
@@ -9,7 +11,13 @@ type EmptyStateProps = {
 
 export const EmptyState = ({ title, body, actionLabel, onAction }: EmptyStateProps) => {
   return (
-    <div role="status" className="border border-dashed border-hairline px-5 py-10 text-center">
+    <motion.div
+      initial="hidden"
+      animate="visible"
+      variants={fadeRise}
+      role="status"
+      className="border border-dashed border-hairline px-5 py-10 text-center"
+    >
       <h3 className="font-display text-xl">{title}</h3>
       <p className="mx-auto mt-2 max-w-md text-ink-soft">{body}</p>
       {actionLabel && onAction ? (
@@ -17,6 +25,6 @@ export const EmptyState = ({ title, body, actionLabel, onAction }: EmptyStatePro
           {actionLabel}
         </Button>
       ) : null}
-    </div>
+    </motion.div>
   )
 }

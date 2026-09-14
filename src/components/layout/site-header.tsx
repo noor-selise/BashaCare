@@ -1,6 +1,7 @@
 "use client"
 
 import Link from "next/link"
+import { motion } from "framer-motion"
 import { usePathname, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { roleHome } from "@/lib/session/role-home"
@@ -62,7 +63,7 @@ export const SiteHeader = () => {
   }
 
   return (
-    <header className="border-b border-hairline bg-surface">
+    <header className="sticky top-0 z-10 border-b border-hairline bg-surface/90 shadow-[var(--shadow-lg)] backdrop-blur-sm">
       <div className="mx-auto flex max-w-[1200px] flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between md:px-8">
         <div className="flex items-baseline gap-3">
           <Link href={roleHome(actor.role)} className="font-display text-xl">
@@ -71,21 +72,31 @@ export const SiteHeader = () => {
           <p className="text-sm text-ink-faint">Uttara Heights</p>
         </div>
         <nav aria-label="Primary" className="flex flex-wrap items-center gap-1">
-          {items.map((item) => (
-            <Link
-              key={item.href}
-              href={item.href}
-              className={cn(
-                "inline-flex min-h-11 items-center px-3 text-[16px]",
-                pathname === item.href ? "bg-courtyard-soft text-courtyard" : "text-ink-soft hover:text-ink"
-              )}
-            >
-              {item.label}
-              {item.href === "/inbox" && unread > 0 ? (
-                <span className="ml-2 font-mono text-terracotta">{unread}</span>
-              ) : null}
-            </Link>
-          ))}
+          {items.map((item) => {
+            const active = pathname === item.href
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                className={cn(
+                  "relative inline-flex min-h-11 items-center px-3 text-[16px]",
+                  active ? "text-courtyard" : "text-ink-soft hover:text-ink"
+                )}
+              >
+                {active ? (
+                  <motion.span
+                    layoutId="nav-active"
+                    className="absolute inset-0 -z-10 bg-courtyard-soft"
+                    transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+                  />
+                ) : null}
+                {item.label}
+                {item.href === "/inbox" && unread > 0 ? (
+                  <span className="ml-2 font-mono text-terracotta">{unread}</span>
+                ) : null}
+              </Link>
+            )
+          })}
         </nav>
         <div className="flex flex-wrap items-center gap-2">
           <p className="text-sm text-ink-soft">

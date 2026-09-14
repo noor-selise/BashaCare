@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { AppShell } from "@/components/layout/app-shell"
 import { RequestCard } from "@/components/requests/request-card"
+import { RequestList } from "@/components/requests/request-list"
 import { EmptyState } from "@/components/ui/empty-state"
 import { useBuilding, useSessionActor } from "@/lib/store"
 
@@ -27,26 +28,28 @@ const ResidentHome = () => {
           New request
         </Link>
       </div>
-      <section className="mt-8 space-y-3">
+      <section className="mt-8">
         {open.length === 0 ? (
           <EmptyState
             title="Nothing open"
             body="When something breaks, write it here. You will see status without calling anyone."
           />
         ) : (
-          open.map((item) => (
-            <RequestCard key={item.id} request={item} href={`/resident/requests/${item.id}`} />
-          ))
+          <RequestList>
+            {open.map((item) => (
+              <RequestCard key={item.id} request={item} href={`/resident/requests/${item.id}`} />
+            ))}
+          </RequestList>
         )}
       </section>
       {closed.length > 0 ? (
         <section className="mt-10">
           <h2 className="font-display text-xl">Recently closed</h2>
-          <div className="mt-3 space-y-3 opacity-80">
+          <RequestList className="mt-3 opacity-80">
             {closed.map((item) => (
               <RequestCard key={item.id} request={item} href={`/resident/requests/${item.id}`} />
             ))}
-          </div>
+          </RequestList>
         </section>
       ) : null}
     </AppShell>

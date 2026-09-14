@@ -1,9 +1,11 @@
 "use client"
 
-import { useRouter } from "next/navigation"
+import { AnimatePresence, motion } from "framer-motion"
+import { usePathname, useRouter } from "next/navigation"
 import { useEffect, type ReactNode } from "react"
 import { EmergencyBanner } from "@/components/layout/emergency-banner"
 import { SiteHeader } from "@/components/layout/site-header"
+import { pageTransition } from "@/lib/motion"
 import { roleHome } from "@/lib/session/role-home"
 import { useBuilding, useSessionActor } from "@/lib/store"
 import type { Role } from "@/types"
@@ -16,6 +18,7 @@ export const AppShell = ({
   allow: Role[]
 }) => {
   const router = useRouter()
+  const pathname = usePathname()
   const actor = useSessionActor()
   const { session, hydrated } = useBuilding()
 
@@ -43,7 +46,17 @@ export const AppShell = ({
       <EmergencyBanner />
       <SiteHeader />
       <main className="mx-auto w-full max-w-[1200px] px-4 py-6 md:px-8 md:py-8">
-        {children}
+        <AnimatePresence mode="wait" initial={false}>
+          <motion.div
+            key={pathname}
+            initial={pageTransition.initial}
+            animate={pageTransition.animate}
+            exit={pageTransition.exit}
+            transition={pageTransition.transition}
+          >
+            {children}
+          </motion.div>
+        </AnimatePresence>
       </main>
     </div>
   )

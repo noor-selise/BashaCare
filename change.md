@@ -4,6 +4,7 @@ All changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Rebuild the signed-out landing as a civic notice board: courtyard stamp, building voice, stacked request/emergency/spend ledger, and an Enter the desk pass (by Noor, 2026-09-14)
 - Upgraded global `@seliseblocks/cli-os` from 0.3.3 to 0.5.0 (2026-09-13)
 - Added BRD with functional and non-functional requirements separated (2026-09-13)
 - Added information architecture and design brief under `.design/basha-care` (2026-09-13)
