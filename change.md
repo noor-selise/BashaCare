@@ -4,7 +4,9 @@ All changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Show live building facts and registered flats on each role home, scoped by IAM role (2026-09-14)
 - Spec a role-scoped building/flats roster on each desk home, read-only from live Registration data (2026-09-14)
+- Put desktop header on one row (brand · nav · account); keep mobile drawer for admin/committee/staff/vendor (2026-09-14)
 - Collapse admin/committee/staff/vendor nav into a mobile drawer so five-item headers no longer wrap; surface clearer file-storage errors on upload (2026-09-14)
 - Document building surfaces, demo cast roles, and FR-7 manual test flows in README; revalidate BRD auth/feasibility rows after IAM roles and Registration shipped (2026-09-14)
 - Fix Registration People list IAM status parsing (`data[]` + `active`) so rows show Active/Pending instead of Unknown (2026-09-14)
