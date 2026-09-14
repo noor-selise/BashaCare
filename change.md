@@ -4,6 +4,8 @@ All changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Split committee from admin: treasurer gets Desk + Registration only; admin keeps Board; document full role matrix in README (2026-09-14)
+- Fix resident request detail after submit: wait for Blocks UUID before navigate so URL matches stored id (2026-09-14)
 - Redeployed branch `dev` (build `39d5d97e-ae16-4b3b-b3ca-ebe8a662cf7e`, commit `5b20fe2`) to https://dbsblo.slsblx.com and https://dbsblo-eleit.slsblx.com (2026-09-14)
 - Rewrite README with standard structure: quick start, scripts, roles, routes, condensed testing (2026-09-14)
 - Show live building facts and registered flats on each role home, scoped by IAM role (2026-09-14)

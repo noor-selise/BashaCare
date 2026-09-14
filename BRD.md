@@ -39,6 +39,7 @@ Cost of that failure: a two-day lift outage strands elderly residents; ৳40,000
 | AI? | Heuristic + history, staff confirm | Propose category, urgency + reason, draft reply. Staff can upgrade/downgrade. Flag Nth repair vs replace. |
 | Nav depth? | Two levels max | Resident / staff / committee / vendor each have a home + a detail. Account is one level. |
 | Profile photo? | Required on hosted tenant | Every desk role uploads once; initials fallback in local demo without Blocks storage. |
+| Admin vs committee? | **Committee:** Desk + Registration. **Admin:** same + staff Board + seed + all alerts. Committee does not triage. | BRD §2 separates treasurer (governance) from caretaker (operations). Admin is Blocks System User, not a building officer. See `docs/superpowers/specs/2026-09-14-admin-committee-split-design.md`. |
 
 ## 4. Functional requirements
 

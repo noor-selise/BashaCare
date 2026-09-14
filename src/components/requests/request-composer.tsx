@@ -32,13 +32,19 @@ export const RequestComposer = () => {
   const handleSubmit = (event: FormEvent) => {
     event.preventDefault()
     if (!message.trim() || uploading) return
-    const id = submitRequest({
-      id: draftId,
-      message: message.trim(),
-      evidence: beforeEvidence ? [beforeEvidence] : undefined
-    })
-    toast.success("Request submitted.")
-    router.push(`/resident/requests/${id}`)
+    void (async () => {
+      try {
+        const id = await submitRequest({
+          id: draftId,
+          message: message.trim(),
+          evidence: beforeEvidence ? [beforeEvidence] : undefined
+        })
+        toast.success("Request submitted.")
+        router.push(`/resident/requests/${id}`)
+      } catch {
+        toast.error("Could not submit the request. Try again.")
+      }
+    })()
   }
 
   return (

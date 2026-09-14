@@ -43,7 +43,6 @@ const navFor = (role: Role) => {
       return [
         { href: "/committee", label: "Desk" },
         { href: "/committee/registry", label: "Registration" },
-        { href: "/staff", label: "Board" },
         { href: "/inbox", label: "Alerts" },
         { href: "/account", label: "Account" }
       ]

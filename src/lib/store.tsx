@@ -56,7 +56,7 @@ type BuildingState = {
 type BuildingApi = BuildingState & {
   hydrated: boolean
   signOut: () => Promise<void>
-  submitRequest: (input: { message: string; id?: string; evidence?: Evidence[] }) => string
+  submitRequest: (input: { message: string; id?: string; evidence?: Evidence[] }) => Promise<string>
   acknowledge: (id: string) => void
   applyAi: (id: string, urgency: Urgency, reason?: string) => void
   assignVendor: (id: string, vendorId: string) => void
@@ -218,12 +218,12 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
           notices: []
         }))
       },
-      submitRequest: ({ message, id: requestedId, evidence }) => {
-        const id = requestedId ?? nextId("req")
+      submitRequest: async ({ message, id: requestedId, evidence }) => {
+        const draftId = requestedId ?? nextId("req")
         const createdAt = now()
         const suggestion = proposeFromMessage(message, state.requests)
         const record: RequestRecord = {
-          id,
+          id: draftId,
           flatId: actor?.flatId ?? "unknown",
           residentId: actor?.id ?? "unknown",
           message,
@@ -242,7 +242,10 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
           ],
           ai: suggestion
         }
-        const draft = noticeDraft("submitted", record)
+        // Blocks assigns a UUID on create — wait for that id before routing or linking notices.
+        const saved = await saveRequest(record)
+        const finalRecord = saved.id === draftId ? record : saved
+        const draft = noticeDraft("submitted", finalRecord)
         const notice: Notice = {
           ...draft,
           id: nextId("n"),
@@ -251,12 +254,11 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
         }
         setState((current) => ({
           ...current,
-          requests: [record, ...current.requests],
+          requests: [finalRecord, ...current.requests],
           notices: [notice, ...current.notices]
         }))
-        persist(record)
         void saveNotice(notice)
-        return id
+        return finalRecord.id
       },
       acknowledge: (id) => {
         patchRequest(id, (item) => {

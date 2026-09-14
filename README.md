@@ -49,57 +49,76 @@ OIDC callback: `https://dbsblo.slsblx.com/login/callback`
 | `npm run check:seed` | Verify demo seed data |
 | `npm run check:roster` | Verify building roster helpers |
 
-## Roles
+## Roles — full picture
 
 Each signed-in user needs a **Blocks IAM role** and a matching **`Person` row**. IAM role alone shows “No desk for this account”.
 
-| Role | Home | What they do |
-| --- | --- | --- |
-| **Admin** | `/committee` | Seed data, Registration, full desk access |
-| **Committee** | `/committee` | Spend desk, vendor performance, Registration |
-| **Staff** | `/staff` | Triage board, assign vendors, attach evidence |
-| **Resident** | `/resident` | Report problems, track status, verify closure |
-| **Vendor** | `/vendor` | Assigned jobs only — no finances |
+### Capability matrix
+
+| Capability | Resident | Staff | Committee | Admin | Vendor |
+| --- | :---: | :---: | :---: | :---: | :---: |
+| **Home** | `/resident` | `/staff` | `/committee` | `/committee` | `/vendor` |
+| Report a problem (message + photo) | ✓ | — | — | — | — |
+| View own requests + verify closure | ✓ | — | — | — | — |
+| Triage board (acknowledge, assign, AI override) | — | ✓ | — | ✓ | — |
+| Attach evidence + record job cost | — | ✓ | — | ✓ | upload on assigned job |
+| Committee desk (spend, slow vendors, urgencies) | — | — | ✓ | ✓ | — |
+| Record / view replace decisions | — | — | ✓ | ✓ | — |
+| Registration (building, flats, invites, vendors) | — | — | ✓ | ✓ | — |
+| Grant `admin` IAM role | — | — | — | portal only | — |
+| Seed empty tenant data on first login | — | — | — | ✓ | — |
+| See all alerts in inbox | — | role-scoped | role-scoped | ✓ all | role-scoped |
+| Edit own profile + photo | ✓ | ✓ | ✓ | ✓ | ✓ |
+| See maintenance fee (৳) on roster | — | — | ✓ | ✓ | — |
+| See money on request cards | — | ✓ | ✓ | ✓ | — |
+
+**Nav by role**
+
+| Role | Primary nav |
+| --- | --- |
+| Resident | Requests · New · Alerts · Account |
+| Staff | Board · Alerts · Account |
+| Committee | Desk · Registration · Alerts · Account |
+| Admin | Desk · Registration · **Board** · Alerts · Account |
+| Vendor | Jobs · Alerts · Account |
+
+**Data isolation**
+
+- **Resident** — own flat’s requests only; assigned flat on home; no finances.
+- **Staff** — all requests; all flats on board (no fee); no Registration.
+- **Committee** — all requests on desk rollups; all flats + fee on desk; Registration write; **cannot** open staff Board (redirects home).
+- **Admin** — operator superset: committee + staff surfaces; seeds Building/Flat/Person when empty.
+- **Vendor** — jobs assigned to their vendor only; flats from those jobs; no finances.
+
+Spec: [`docs/superpowers/specs/2026-09-14-admin-committee-split-design.md`](./docs/superpowers/specs/2026-09-14-admin-committee-split-design.md)
 
 ### Demo accounts
 
 Hosted login: `https://dbsblo.slsblx.com`
 
-| Email | Role | Notes |
+| Email | Role | Demo persona |
 | --- | --- | --- |
-| `noor@yopmail.com` | admin | Live tenant admin |
-| `nusrat@yopmail.com` | resident | Flat 7-B |
-| `karim@yopmail.com` | resident | Flat 10-A · seeded emergency `req-10a-shaft` |
-| `hasan@yopmail.com` | staff | Caretaker |
-| `rina@yopmail.com` | committee | Treasurer |
-| `rafiq@yopmail.com` | vendor | Metro Lift AMC |
-| `rahman@yopmail.com` | vendor | Rahman Pump Service |
+| `noor.mohammad@selisegroup.com` | admin | Tenant operator |
+| `nusrat@yopmail.com` | resident | Nusrat · Flat 7-B |
+| `karim@yopmail.com` | resident | Karim · Flat 10-A |
+| `hasan@yopmail.com` | staff | Hasan · Caretaker |
+| `rina@yopmail.com` | committee | Rina · Treasurer |
+| `rafiq@yopmail.com` | vendor | Rafiq · Metro Lift AMC |
+| `rahman@yopmail.com` | vendor | Abdur Rahman · Rahman Pump |
 
-Demo emails must be invited on the tenant with the matching IAM role and `Person` row (via `/committee/registry` or seed on first admin login).
+Demo emails need IAM role + `Person` row (Registration or admin seed on first login).
 
 ## Routes
 
-| Path | Access |
+| Path | Who can open |
 | --- | --- |
-| `/` | Sign-in landing |
+| `/` | Everyone (sign-in) |
 | `/resident`, `/resident/new`, `/resident/requests/[id]` | Resident |
-| `/staff`, `/staff/requests/[id]` | Staff |
+| `/staff`, `/staff/requests/[id]` | Staff, **admin** |
 | `/committee`, `/committee/vendors/[id]`, `/committee/decisions/[id]` | Committee, admin |
-| `/committee/registry` | Admin, committee — building, flats, people, vendors |
+| `/committee/registry` | Committee, admin |
 | `/vendor`, `/vendor/jobs/[id]` | Vendor |
-| `/inbox` | Role-scoped alerts |
-| `/account` | All desk roles — profile, photo |
-
-## Building data
-
-| Surface | Who sees it |
-| --- | --- |
-| Header subtitle | All signed-in roles — live `Building.name` |
-| `/committee/registry` | Admin, committee — edit building record |
-| Resident home | Assigned flat only |
-| Staff board / Committee desk | Full flat roster (fee on committee desk only) |
-
-Admin seeds `Building`, `Flat`, and `Person` rows on first login when collections are empty.
+| `/inbox`, `/account` | All desk roles |
 
 ## Manual testing
 
