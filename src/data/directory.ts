@@ -12,9 +12,19 @@ export const vendors: Vendor[] = [
   { id: "uttara-electric", name: "Uttara Electric", trade: "Electrical" }
 ]
 
+// Person ids are emails, and IAM can hand back a different casing than the row was stored
+// with, so every lookup here matches case-insensitively.
+export const findPersonRecord = (id: string, people: Person[]): Person | null => {
+  const key = id.trim().toLowerCase()
+  if (!key) return null
+  return (
+    people.find((item) => item.id.toLowerCase() === key || item.email.toLowerCase() === key) ?? null
+  )
+}
+
 export const findPerson = (id: string, people: Person[]): Person => {
   return (
-    people.find((item) => item.id === id) ?? {
+    findPersonRecord(id, people) ?? {
       id,
       email: id,
       name: "Desk",

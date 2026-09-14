@@ -111,7 +111,8 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
       return
     }
 
-    const session = { actorId: claims.email, role }
+    // Person rows key on a normalised email, so normalise the claim before it becomes the actor id.
+    const session = { actorId: claims.email.trim().toLowerCase(), role }
     setState((current) => ({ ...current, session }))
 
     const load = async () => {
