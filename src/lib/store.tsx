@@ -293,99 +293,102 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
         })
       },
       assignVendor: (id, vendorId) => {
-        let assigned: RequestRecord | null = null
-        patchRequest(id, (item) => {
-          assigned = addEvent(
-            {
-              ...item,
-              vendorId,
-              status: "assigned",
-              assignedAt: now()
-            },
-            "Assigned to vendor"
-          )
-          return assigned
-        })
-        if (assigned) {
-          const draft = noticeDraft("assigned", assigned)
-          const notice: Notice = {
-            ...draft,
-            id: nextId("n"),
-            at: now(),
-            read: false
-          }
-          setState((current) => ({
-            ...current,
-            notices: [notice, ...current.notices]
-          }))
-          void saveNotice(notice)
+        const item = state.requests.find((row) => row.id === id)
+        if (!item || item.status === "verified_closed" || item.status === "rejected") return
+
+        const assigned = addEvent(
+          {
+            ...item,
+            vendorId,
+            status: "assigned",
+            assignedAt: now()
+          },
+          "Assigned to vendor"
+        )
+        patchRequest(id, () => assigned)
+
+        const draft = noticeDraft("assigned", assigned)
+        const notice: Notice = {
+          ...draft,
+          id: nextId("n"),
+          at: now(),
+          read: false
         }
+        setState((current) => ({
+          ...current,
+          notices: [notice, ...current.notices]
+        }))
+        void saveNotice(notice)
       },
       markDone: (id, after, cost) => {
-        let updated: RequestRecord | null = null
-        patchRequest(id, (item) => {
-          updated = addEvent(
-            {
-              ...item,
-              status: "awaiting_verification",
-              completedAt: now(),
-              cost: cost ?? item.cost,
-              evidence: after ? [...item.evidence, after] : item.evidence
-            },
-            "Work marked done — waiting for resident verify"
-          )
-          return updated
-        })
-        if (updated) {
-          const draft = noticeDraft("ready_to_verify", updated)
-          const notice: Notice = {
-            ...draft,
-            id: nextId("n"),
-            at: now(),
-            read: false
-          }
-          setState((current) => ({
-            ...current,
-            notices: [notice, ...current.notices]
-          }))
-          void saveNotice(notice)
+        const item = state.requests.find((row) => row.id === id)
+        if (
+          !item ||
+          item.status === "verified_closed" ||
+          item.status === "awaiting_verification" ||
+          item.status === "rejected"
+        ) {
+          return
         }
+
+        const updated = addEvent(
+          {
+            ...item,
+            status: "awaiting_verification",
+            completedAt: now(),
+            cost: cost ?? item.cost,
+            evidence: after ? [...item.evidence, after] : item.evidence
+          },
+          "Work marked done — waiting for resident verify"
+        )
+        patchRequest(id, () => updated)
+
+        const draft = noticeDraft("ready_to_verify", updated)
+        const notice: Notice = {
+          ...draft,
+          id: nextId("n"),
+          at: now(),
+          read: false
+        }
+        setState((current) => ({
+          ...current,
+          notices: [notice, ...current.notices]
+        }))
+        void saveNotice(notice)
       },
       verify: (id) => {
-        let closed: RequestRecord | null = null
-        patchRequest(id, (item) => {
-          if (item.status !== "awaiting_verification") return item
-          closed = addEvent(
-            {
-              ...item,
-              status: "verified_closed",
-              verifiedAt: now()
-            },
-            "Resident verified — closed"
-          )
-          return closed
-        })
-        if (closed) {
-          const draft = noticeDraft("verified_closed", closed)
-          const notice: Notice = {
-            ...draft,
-            id: nextId("n"),
-            at: now(),
-            read: false
-          }
-          setState((current) => {
-            current.notices.forEach((row) => {
-              if (row.requestId === id && !row.read) {
-                void markNoticeReadRemote(row.id)
-              }
-            })
-            return {
-              ...current,
-              notices: [notice, ...markRequestNoticesRead(current.notices, id)]
+        const item = state.requests.find((row) => row.id === id)
+        if (!item || item.status !== "awaiting_verification") return
+
+        const closed = addEvent(
+          {
+            ...item,
+            status: "verified_closed",
+            verifiedAt: now()
+          },
+          "Resident verified — closed"
+        )
+        patchRequest(id, () => closed)
+
+        const draft = noticeDraft("verified_closed", closed)
+        const notice: Notice = {
+          ...draft,
+          id: nextId("n"),
+          at: now(),
+          read: false
+        }
+        setState((current) => {
+          current.notices.forEach((row) => {
+            if (row.requestId === id && !row.read) {
+              void markNoticeReadRemote(row.id)
             }
           })
-          void saveNotice(notice)
-        }
+          return {
+            ...current,
+            notices: [notice, ...markRequestNoticesRead(current.notices, id)]
+          }
+        })
+        void saveNotice(notice)
       },
       rejectVerify: (id) => {
         patchRequest(id, (item) => {

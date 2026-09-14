@@ -53,6 +53,11 @@ const VendorJobPage = () => {
               </Button>
             </div>
           ) : null}
+          {job.status === "awaiting_verification" ? (
+            <p className="border border-hairline bg-garden-wash p-4 text-ink">
+              Waiting for the resident to verify before this job closes.
+            </p>
+          ) : null}
         </article>
       )}
     </AppShell>

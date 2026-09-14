@@ -13,12 +13,13 @@ import { Button } from "@/components/ui/button"
 import { findPerson } from "@/data/directory"
 import { formatWhen, statusLabel, urgencyLabel } from "@/lib/format"
 import { formatTaka } from "@/lib/money"
-import { useBuilding } from "@/lib/store"
+import { useBuilding, useSessionActor } from "@/lib/store"
 import type { Evidence } from "@/types"
 
 const StaffRequestPage = () => {
   const { id } = useParams<{ id: string }>()
   const { requests, vendors, acknowledge, assignVendor, markDone, people } = useBuilding()
+  const actor = useSessionActor()
   const request = requests.find((item) => item.id === id)
   const [afterEvidence, setAfterEvidence] = useState<Evidence | null>(null)
   const [cost, setCost] = useState("")
@@ -41,6 +42,21 @@ const StaffRequestPage = () => {
       : request?.category === "water" || request?.category === "plumbing"
         ? "water"
         : "other"
+
+  const canAssign =
+    request &&
+    request.status !== "verified_closed" &&
+    request.status !== "rejected" &&
+    request.status !== "awaiting_verification"
+
+  const canMarkDone =
+    request &&
+    request.status !== "verified_closed" &&
+    request.status !== "rejected" &&
+    request.status !== "awaiting_verification"
+
+  const awaitingVerify = request?.status === "awaiting_verification"
+  const resident = request ? findPerson(request.residentId, people) : null
 
   return (
     <AppShell allow={["staff"]}>
@@ -70,46 +86,71 @@ const StaffRequestPage = () => {
                 Acknowledge now
               </Button>
             ) : null}
-            <form onSubmit={handleAssign} className="flex flex-wrap gap-2">
-              <label className="sr-only" htmlFor="vendorId">
-                Vendor
-              </label>
-              <select
-                id="vendorId"
-                name="vendorId"
-                className="min-h-11 border border-hairline bg-surface px-3 text-[16px]"
-                defaultValue={request.vendorId ?? vendors[0]?.id}
-              >
-                {vendors.map((vendor) => (
-                  <option key={vendor.id} value={vendor.id}>
-                    {vendor.name}
-                  </option>
-                ))}
-              </select>
-              <Button type="submit">Assign</Button>
-            </form>
-            <form onSubmit={handleDone} className="grid gap-3 border border-hairline bg-surface p-4">
-              <EvidenceUpload
-                requestId={request.id}
-                kind="after"
-                tone={afterTone}
-                buttonLabel="Attach after photo"
-                onUploaded={setAfterEvidence}
-              />
-              <label htmlFor="cost">
-                Cost (৳)
-                <input
-                  id="cost"
-                  name="cost"
-                  type="number"
-                  min={0}
-                  value={cost}
-                  onChange={(event) => setCost(event.target.value)}
-                  className="mt-1 min-h-11 w-full border border-hairline px-3 text-[16px]"
+            {awaitingVerify ? (
+              <div className="space-y-3 border border-hairline bg-garden-wash p-4">
+                <p className="text-ink">
+                  Waiting for {resident?.name ?? "the resident"} to verify the work before this request
+                  can close.
+                </p>
+                {actor?.role === "admin" ? (
+                  <Link
+                    href={`/resident/requests/${request.id}`}
+                    className="inline-flex min-h-11 items-center text-courtyard underline-offset-4 hover:underline"
+                  >
+                    Open verify view (demo)
+                  </Link>
+                ) : null}
+              </div>
+            ) : null}
+            {canAssign ? (
+              <form onSubmit={handleAssign} className="flex flex-wrap gap-2">
+                <label className="sr-only" htmlFor="vendorId">
+                  Vendor
+                </label>
+                <select
+                  id="vendorId"
+                  name="vendorId"
+                  className="min-h-11 border border-hairline bg-surface px-3 text-[16px]"
+                  defaultValue={request.vendorId ?? vendors[0]?.id}
+                >
+                  {vendors.map((vendor) => (
+                    <option key={vendor.id} value={vendor.id}>
+                      {vendor.name}
+                    </option>
+                  ))}
+                </select>
+                <Button type="submit">Assign</Button>
+              </form>
+            ) : null}
+            {request.status === "verified_closed" ? (
+              <p className="border border-hairline bg-surface-2 p-4 text-ink-soft">
+                This request is verified closed.
+              </p>
+            ) : null}
+            {canMarkDone ? (
+              <form onSubmit={handleDone} className="grid gap-3 border border-hairline bg-surface p-4">
+                <EvidenceUpload
+                  requestId={request.id}
+                  kind="after"
+                  tone={afterTone}
+                  buttonLabel="Attach after photo"
+                  onUploaded={setAfterEvidence}
                 />
-              </label>
-              <Button type="submit">Mark done — wait for verify</Button>
-            </form>
+                <label htmlFor="cost">
+                  Cost (৳)
+                  <input
+                    id="cost"
+                    name="cost"
+                    type="number"
+                    min={0}
+                    value={cost}
+                    onChange={(event) => setCost(event.target.value)}
+                    className="mt-1 min-h-11 w-full border border-hairline px-3 text-[16px]"
+                  />
+                </label>
+                <Button type="submit">Mark done — wait for verify</Button>
+              </form>
+            ) : null}
             <ol className="space-y-2 text-sm text-ink-soft">
               {request.timeline.map((event) => (
                 <li key={event.id}>

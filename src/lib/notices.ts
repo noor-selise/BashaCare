@@ -59,6 +59,13 @@ export const inboxLink = (
     return { href: base, label: "Verify now" }
   }
 
+  if (request.status === "awaiting_verification") {
+    return {
+      href: role === "vendor" ? base : `/staff/requests/${request.id}`,
+      label: "View request"
+    }
+  }
+
   if (request.status === "verified_closed") {
     return { href: base, label: "View closed request" }
   }

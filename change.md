@@ -4,7 +4,7 @@ All changes to this project will be documented in this file.
 
 ## [Unreleased]
 
-- Add Blocks photo upload for request evidence, show who requested on triage detail pages, and lifecycle-aware inbox links (Verify now, View closed request, Open triage) (2026-09-14)
+- Add Blocks photo upload for request evidence, show who requested on triage detail pages, lifecycle-aware inbox links, and clearer awaiting-verification state on staff triage (2026-09-14)
 - Redeployed branch `dev` (build `824e4e98-6f7c-4ce9-9aaf-54935f84adf3`, commit `44e98fb`) to https://dbsblo.slsblx.com and https://dbsblo-eleit.slsblx.com (2026-09-14)
 - Show Registration in the admin and committee nav, label the registry route Registration, and redeploy dev so hosted builds pick up commit 6b60c14 (2026-09-14)
 - Fix building registration: read created row ids from the GraphQL envelope, seed each collection independently, keep seed people and flats as a baseline live rows add to, report failed writes in the registry panels, and require a Person row before opening a desk (2026-09-14)
