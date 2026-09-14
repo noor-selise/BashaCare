@@ -26,6 +26,7 @@ import {
   saveRequest,
   seedBuildingRecords
 } from "@/lib/blocks/building-data"
+import { saveOwnProfile, type ProfilePatch } from "@/lib/blocks/profile"
 import { invitePerson as invitePersonRecord, type InviteInput } from "@/lib/blocks/registry"
 import { markRequestNoticesRead, noticeDraft } from "@/lib/notices"
 import type {
@@ -68,6 +69,7 @@ type BuildingApi = BuildingState & {
   updateBuildingInfo: (input: Omit<BuildingInfo, "id">) => Promise<void>
   invitePerson: (input: InviteInput) => Promise<void>
   addVendor: (input: { name: string; trade: string }) => Promise<void>
+  updateProfile: (patch: ProfilePatch) => Promise<void>
 }
 
 const BuildingContext = createContext<BuildingApi | null>(null)
@@ -425,6 +427,19 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
       addVendor: async (input) => {
         const vendor = await addVendorRecord(input)
         setState((current) => ({ ...current, vendors: [...current.vendors, vendor] }))
+      },
+      updateProfile: async (patch) => {
+        if (!state.session?.actorId) throw new Error("Sign in to update your profile.")
+        const existing = findPerson(state.session.actorId, state.people)
+        const saved = await saveOwnProfile(state.session.actorId, patch, existing)
+        setState((current) => ({
+          ...current,
+          people: current.people.some((item) => item.id.toLowerCase() === saved.id.toLowerCase())
+            ? current.people.map((item) => {
+                return item.id.toLowerCase() === saved.id.toLowerCase() ? saved : item
+              })
+            : [...current.people, saved]
+        }))
       },
       visibleRequests
     }

@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { motion } from "framer-motion"
 import { usePathname, useRouter } from "next/navigation"
+import { ProfilePhoto } from "@/components/account/profile-photo"
 import { Button } from "@/components/ui/button"
 import { roleHome } from "@/lib/session/role-home"
 import { useBuilding, useSessionActor } from "@/lib/store"
@@ -20,12 +21,14 @@ const navFor = (role: Role) => {
       return [
         { href: "/resident", label: "Requests" },
         { href: "/resident/new", label: "New" },
-        { href: "/inbox", label: "Alerts" }
+        { href: "/inbox", label: "Alerts" },
+        { href: "/account", label: "Account" }
       ]
     case "staff":
       return [
         { href: "/staff", label: "Board" },
-        { href: "/inbox", label: "Alerts" }
+        { href: "/inbox", label: "Alerts" },
+        { href: "/account", label: "Account" }
       ]
     case "admin":
       return [
@@ -46,7 +49,8 @@ const navFor = (role: Role) => {
     case "vendor":
       return [
         { href: "/vendor", label: "Jobs" },
-        { href: "/inbox", label: "Alerts" }
+        { href: "/inbox", label: "Alerts" },
+        { href: "/account", label: "Account" }
       ]
     default: {
       const _never: never = role
@@ -112,12 +116,24 @@ export const SiteHeader = () => {
           })}
         </nav>
         <div className="flex flex-wrap items-center gap-2">
-          <p className="text-sm text-ink-soft">
-            {actor.name}
-            <span className="ml-2 text-[11px] uppercase tracking-[0.08em] text-courtyard">
-              {actor.role}
+          <Link
+            href="/account"
+            className="inline-flex min-h-11 items-center gap-2 rounded-full pr-2 hover:bg-surface-2"
+            aria-label="Open account"
+          >
+            <ProfilePhoto
+              email={actor.email}
+              name={actor.name}
+              photoFileId={actor.photoFileId}
+              size="sm"
+            />
+            <span className="text-sm text-ink-soft">
+              {actor.name}
+              <span className="ml-2 text-[11px] uppercase tracking-[0.08em] text-courtyard">
+                {actor.role}
+              </span>
             </span>
-          </p>
+          </Link>
           <Button variant="ghost" onClick={() => void handleSignOut()} aria-label="Sign out">
             Sign out
           </Button>

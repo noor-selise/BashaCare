@@ -79,11 +79,23 @@ export const uploadEvidenceFile = async (
   requestId: string,
   kind: "before" | "after"
 ): Promise<{ fileId: string; mimeType: string }> => {
+  return uploadStorageImage(file, `${requestId}-${kind}-${Date.now()}`)
+}
+
+export const uploadProfilePhoto = async (
+  email: string,
+  file: File
+): Promise<{ fileId: string; mimeType: string }> => {
+  const slug = email.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-")
+  return uploadStorageImage(file, `profile-${slug}-${Date.now()}`)
+}
+
+const uploadStorageImage = async (file: File, nameStem: string): Promise<{ fileId: string; mimeType: string }> => {
   const client = getBlocksClient()
   if (!client) throw new Error("Blocks is not configured — photo upload needs hosted storage.")
 
   const directoryId = await ensureEvidenceDirectory(client)
-  const name = `${requestId}-${kind}-${Date.now()}.${extensionFrom(file)}`
+  const name = `${nameStem}.${extensionFrom(file)}`
 
   const presign = await client.data.files.presignedUploadUrl({
     name,
@@ -114,3 +126,5 @@ export const evidenceDownloadUrl = async (fileId: string): Promise<string | null
     return null
   }
 }
+
+export const storageDownloadUrl = evidenceDownloadUrl

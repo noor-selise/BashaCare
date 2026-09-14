@@ -27,6 +27,8 @@ export type Person = {
   title: string
   flatId?: string
   vendorId?: string
+  photoFileId?: string
+  photoMimeType?: string
 }
 
 export type Flat = {

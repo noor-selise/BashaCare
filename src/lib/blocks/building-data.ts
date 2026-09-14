@@ -142,6 +142,8 @@ type PersonRow = Record<string, unknown> & {
   title?: string
   flatId?: string
   vendorId?: string
+  photoFileId?: string
+  photoMimeType?: string
 }
 
 const personFromRow = (row: PersonRow): Person => ({
@@ -150,7 +152,9 @@ const personFromRow = (row: PersonRow): Person => ({
   name: String(row.name ?? ""),
   title: String(row.title ?? ""),
   flatId: row.flatId ? String(row.flatId) : undefined,
-  vendorId: row.vendorId ? String(row.vendorId) : undefined
+  vendorId: row.vendorId ? String(row.vendorId) : undefined,
+  photoFileId: row.photoFileId ? String(row.photoFileId) : undefined,
+  photoMimeType: row.photoMimeType ? String(row.photoMimeType) : undefined
 })
 
 const listItems = <T,>(response: unknown, key: string): T[] => {
@@ -260,7 +264,7 @@ export const loadBuildingRecords = async () => {
     fields: ["label", "floor", "status"]
   })
   const peopleApi = client.data.collection<PersonRow>("Person", {
-    fields: ["email", "name", "title", "flatId", "vendorId"]
+    fields: ["email", "name", "title", "flatId", "vendorId", "photoFileId", "photoMimeType"]
   })
 
   const [requestRes, decisionRes, noticeRes, vendorRes, buildingRes, flatRes, personRes] = await Promise.all([
@@ -505,9 +509,55 @@ export const savePerson = async (input: Omit<Person, "id">): Promise<Person> => 
     name: input.name,
     title: input.title,
     flatId: input.flatId ?? "",
-    vendorId: input.vendorId ?? ""
+    vendorId: input.vendorId ?? "",
+    photoFileId: input.photoFileId ?? "",
+    photoMimeType: input.photoMimeType ?? ""
   })
   assertMutationOk(created, "insertPerson", `Inviting ${email}`)
+  return person
+}
+
+export const updatePersonProfile = async (
+  email: string,
+  patch: Pick<Person, "name" | "title" | "photoFileId" | "photoMimeType">,
+  existing?: Person
+): Promise<Person> => {
+  const normalized = email.trim().toLowerCase()
+  const person: Person = {
+    id: normalized,
+    email: normalized,
+    name: patch.name.trim(),
+    title: patch.title.trim(),
+    flatId: existing?.flatId,
+    vendorId: existing?.vendorId,
+    photoFileId: patch.photoFileId ?? existing?.photoFileId,
+    photoMimeType: patch.photoMimeType ?? existing?.photoMimeType
+  }
+  const client = getBlocksClient()
+  if (!client) return person
+
+  const api = client.data.collection<PersonRow>("Person")
+  const list = await api.list({ pageNo: 1, pageSize: 200 })
+  const rows = listItems<PersonRow>(list, "getPersons")
+  const row = rows.find((item) => String(item.email ?? "").toLowerCase() === normalized)
+  const payload = {
+    email: normalized,
+    name: person.name,
+    title: person.title,
+    flatId: row?.flatId ?? existing?.flatId ?? "",
+    vendorId: row?.vendorId ?? existing?.vendorId ?? "",
+    photoFileId: person.photoFileId ?? row?.photoFileId ?? "",
+    photoMimeType: person.photoMimeType ?? row?.photoMimeType ?? ""
+  }
+
+  if (row) {
+    const updated = await api.update(rowId(row), payload)
+    assertMutationOk(updated, "updatePerson", "Updating profile")
+    return person
+  }
+
+  const created = await api.create(payload)
+  assertMutationOk(created, "insertPerson", "Saving profile")
   return person
 }
 

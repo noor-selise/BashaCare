@@ -42,6 +42,22 @@
       "isPIIData": false,
       "isUniqueData": false,
       "description": "Vendor id for vendor contacts"
+    },
+    {
+      "name": "photoFileId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Blocks file id for the user's profile photo"
+    },
+    {
+      "name": "photoMimeType",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "MIME type of the profile photo"
     }
   ]
 }

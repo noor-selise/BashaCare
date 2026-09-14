@@ -37,7 +37,8 @@ Cost of that failure: a two-day lift outage strands elderly residents; ৳40,000
 | Framework? | Next.js at repo root, wired as an existing Blocks app | User asked for Next.js. Official `blocks new web` is still Vite. Existing-app skill owns the wire-up. |
 | Folder layout? | Single Next.js app at repo root + `blocks/` + role-grouped `src/app` | One app, four role surfaces. No monorepo until a second app exists. |
 | AI? | Heuristic + history, staff confirm | Propose category, urgency + reason, draft reply. Staff can upgrade/downgrade. Flag Nth repair vs replace. |
-| Nav depth? | Two levels max | Resident / staff / committee / vendor each have a home + a detail. |
+| Nav depth? | Two levels max | Resident / staff / committee / vendor each have a home + a detail. Account is one level. |
+| Profile photo? | Required on hosted tenant | Every desk role uploads once; initials fallback in local demo without Blocks storage. |
 
 ## 4. Functional requirements
 
@@ -47,6 +48,8 @@ Cost of that failure: a two-day lift outage strands elderly residents; ৳40,000
 - FR-1.3 Costs, vendor performance, and committee decisions are visible to committee and managers only.
 - FR-1.4 Vendors see only work assigned to them.
 - FR-1.5 Role is visible in the chrome at all times so a demo cannot silently leak the wrong data.
+- FR-1.6 **Account profile (all roles).** Every signed-in desk role — resident, staff, committee, vendor, and admin — has an **Account** item in primary nav and can edit their own **display name** and **title** (how they appear on timelines, triage, and the header). Email, role, flat, and vendor assignment stay read-only; flat and vendor are changed only through Registration.
+- FR-1.7 **Profile photo (required).** Every signed-in user must upload a **profile photo** through Blocks file storage before saving Account changes on a hosted tenant. The photo is stored as a private file id on the user's Person row, shown on Account and in the desk header avatar. Seeded demo users without a photo show initials until they upload. Same storage rules as request evidence (SDK only; no raw Blocks API calls).
 
 ### FR-2 Resident request
 - FR-2.1 Resident reports a problem as a message (not a form-first flow), optionally with a photo.
@@ -147,6 +150,7 @@ Staff may reject with a reason. Closed requires resident verification except whe
 - A committee member can answer, on one screen: which vendor is slow, what they cost, and which urgent incidents are open.
 - The pump case shows six repairs / ৳38,500 and a replace decision.
 - Staff can override an AI urgency call, and that override is visible.
+- Any desk role can edit name, title, and profile photo on Account without admin help; the photo appears in the header.
 
 ## 8. Feasibility (revalidation)
 
@@ -154,6 +158,7 @@ Staff may reject with a reason. Closed requires resident verification except whe
 |------------|---------------------|-----|------|
 | Four roles + row isolation | Partial | Demo actors for now; only `clouduser` exists in IAM | Add resident/staff/committee/vendor roles before row policies |
 | Request lifecycle + evidence | Yes | Data schema + Data Storage photos | Storage provider may be unset on a new tenant |
+| Profile photo on Person row | Yes | Person.photoFileId + Blocks file storage | Person schema must include photo fields; reload data gateway after push |
 | Emergency vs routine | Yes, app-owned | Urgency field + Notifier + UI path | Notifier/mail config often missing on fresh tenants |
 | Cost + vendor performance | Yes | Job cost fields + GraphQL/aggregation in app | No warehouse. Rollups are app queries. |
 | Resident Bangla messages | Yes | Store raw text; Noto Sans Bengali in UI | Localization modules are for chrome, not free text |
