@@ -3,7 +3,7 @@
 import { motion } from "framer-motion"
 import type { ReactNode } from "react"
 import { Button } from "@/components/ui/button"
-import { BUILDING } from "@/data/directory"
+import { FALLBACK_BUILDING } from "@/data/directory"
 import { fadeRise } from "@/lib/motion"
 import { formatTaka } from "@/lib/money"
 
@@ -57,7 +57,7 @@ export const GateFrame = ({ children }: { children: ReactNode }) => {
         <div className="mx-auto flex max-w-[1200px] flex-col gap-2 px-4 py-4 md:flex-row md:items-baseline md:justify-between md:px-8">
           <div className="flex items-baseline gap-3">
             <p className="font-display text-xl">BashaCare</p>
-            <p className="text-sm text-ink-faint">{BUILDING.name}</p>
+            <p className="text-sm text-ink-faint">{FALLBACK_BUILDING.name}</p>
           </div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-courtyard">
             One building · one desk
@@ -130,7 +130,7 @@ export const SignedOutGate = ({
             House 18 · Road 7 · Uttara
           </p>
           <h1 className="mt-3 font-display text-[clamp(40px,6vw,72px)] leading-[1.05] tracking-tight">
-            {BUILDING.name}
+            {FALLBACK_BUILDING.name}
           </h1>
           <p className="mt-5 max-w-[65ch] text-lg leading-[1.35] text-ink-soft">
             Problems get a request. Emergencies look like emergencies.
@@ -194,7 +194,7 @@ export const SignedOutGate = ({
               </li>
             ))}
           </ul>
-          <p className="mt-6 text-[13px] leading-[1.4] tracking-[0.02em] text-ink-faint">{BUILDING.line}</p>
+          <p className="mt-6 text-[13px] leading-[1.4] tracking-[0.02em] text-ink-faint">{FALLBACK_BUILDING.line}</p>
         </section>
       </main>
     </GateFrame>
