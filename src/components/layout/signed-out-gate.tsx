@@ -5,7 +5,6 @@ import type { ReactNode } from "react"
 import { Button } from "@/components/ui/button"
 import { FALLBACK_BUILDING } from "@/data/directory"
 import { fadeRise } from "@/lib/motion"
-import { formatTaka } from "@/lib/money"
 
 type SignedOutGateProps = {
   configured: boolean
@@ -18,22 +17,17 @@ const notices = [
   {
     label: "Request",
     tone: "request" as const,
-    body: "A leak in 7-B is a request, not a WhatsApp thread."
+    body: "A leak is a request — not a phone call or a WhatsApp thread."
   },
   {
     label: "Emergency",
     tone: "emergency" as const,
-    body: "Water in the lift shaft is pinned and terracotta — one glance, not a badge."
+    body: "A burst pipe or a trapped lift is pinned and terracotta — one glance, not a badge."
   },
   {
     label: "Spend",
     tone: "spend" as const,
-    body: (
-      <>
-        The committee sees who is slow and what they cost —{" "}
-        <span className="font-mono">{formatTaka(38500)}</span> on the pump last quarter — without calling Hasan.
-      </>
-    )
+    body: "The committee sees who is slow and what work costs — without chasing anyone down for an answer."
   }
 ]
 
