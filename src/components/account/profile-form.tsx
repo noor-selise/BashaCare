@@ -65,15 +65,16 @@ export const ProfileForm = ({ vendors }: { vendors: Vendor[] }) => {
     if (!canSave) return
     setSaving(true)
     try {
-      await updateProfile({
-        name: name.trim(),
-        title: title.trim(),
-        photoFileId,
-        photoMimeType
-      })
-      toast.success("Profile saved.")
-    } catch (saveError) {
-      toast.error(saveError instanceof Error ? saveError.message : "Could not save profile.")
+      await toast.promise(
+        updateProfile({ name: name.trim(), title: title.trim(), photoFileId, photoMimeType }),
+        {
+          loading: "Saving profile…",
+          success: "Profile saved.",
+          error: (caught) => (caught instanceof Error ? caught.message : "Could not save profile.")
+        }
+      )
+    } catch {
+      // toast.promise already reported the error
     } finally {
       setSaving(false)
     }

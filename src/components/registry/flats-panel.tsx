@@ -22,14 +22,18 @@ export const FlatsPanel = ({
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     if (!label.trim()) return
+    const flatLabel = label.trim()
     setSaving(true)
     try {
-      await onAdd({ label: label.trim(), floor: Number(floor) || 0 })
-      toast.success(`Flat ${label.trim()} added.`)
+      await toast.promise(onAdd({ label: flatLabel, floor: Number(floor) || 0 }), {
+        loading: `Adding flat ${flatLabel}…`,
+        success: `Flat ${flatLabel} added.`,
+        error: (caught) => (caught instanceof Error ? caught.message : "Could not add the flat.")
+      })
       setLabel("")
       setFloor("")
-    } catch (caught) {
-      toast.error(caught instanceof Error ? caught.message : "Could not add the flat.")
+    } catch {
+      // toast.promise already reported the error
     } finally {
       setSaving(false)
     }

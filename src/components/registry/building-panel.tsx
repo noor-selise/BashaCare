@@ -26,16 +26,22 @@ export const BuildingPanel = ({
     event.preventDefault()
     setSaving(true)
     try {
-      await onSave({
-        name,
-        addressLine,
-        storeys: Number(storeys) || 0,
-        flatCount: Number(flatCount) || 0,
-        fee: Number(fee) || 0
-      })
-      toast.success("Building details saved.")
-    } catch (caught) {
-      toast.error(caught instanceof Error ? caught.message : "Could not save the building.")
+      await toast.promise(
+        onSave({
+          name,
+          addressLine,
+          storeys: Number(storeys) || 0,
+          flatCount: Number(flatCount) || 0,
+          fee: Number(fee) || 0
+        }),
+        {
+          loading: "Saving building…",
+          success: "Building details saved.",
+          error: (caught) => (caught instanceof Error ? caught.message : "Could not save the building.")
+        }
+      )
+    } catch {
+      // toast.promise already reported the error
     } finally {
       setSaving(false)
     }

@@ -60,20 +60,27 @@ export const PeoplePanel = ({
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     if (!name.trim() || !email.trim()) return
+    const personName = name.trim()
     setSaving(true)
     try {
-      await onInvite({
-        name: name.trim(),
-        email: email.trim(),
-        role,
-        flatId: role === "resident" ? flatId || undefined : undefined,
-        vendorId: role === "vendor" ? vendorId || undefined : undefined
-      })
-      toast.success(`Invited ${name.trim()}.`)
+      await toast.promise(
+        onInvite({
+          name: personName,
+          email: email.trim(),
+          role,
+          flatId: role === "resident" ? flatId || undefined : undefined,
+          vendorId: role === "vendor" ? vendorId || undefined : undefined
+        }),
+        {
+          loading: `Inviting ${personName}…`,
+          success: `Invited ${personName}.`,
+          error: (caught) => (caught instanceof Error ? caught.message : "Could not invite this person.")
+        }
+      )
       setName("")
       setEmail("")
-    } catch (caught) {
-      toast.error(caught instanceof Error ? caught.message : "Could not invite this person.")
+    } catch {
+      // toast.promise already reported the error
     } finally {
       setSaving(false)
     }

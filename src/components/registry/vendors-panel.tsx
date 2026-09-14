@@ -20,14 +20,18 @@ export const VendorsPanel = ({
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault()
     if (!name.trim() || !trade.trim()) return
+    const vendorName = name.trim()
     setSaving(true)
     try {
-      await onAdd({ name: name.trim(), trade: trade.trim() })
-      toast.success(`Vendor ${name.trim()} added.`)
+      await toast.promise(onAdd({ name: vendorName, trade: trade.trim() }), {
+        loading: `Adding ${vendorName}…`,
+        success: `Vendor ${vendorName} added.`,
+        error: (caught) => (caught instanceof Error ? caught.message : "Could not add the vendor.")
+      })
       setName("")
       setTrade("")
-    } catch (caught) {
-      toast.error(caught instanceof Error ? caught.message : "Could not add the vendor.")
+    } catch {
+      // toast.promise already reported the error
     } finally {
       setSaving(false)
     }
