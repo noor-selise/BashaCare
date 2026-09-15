@@ -4,6 +4,7 @@ All changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Redeployed branch `dev` (build `ceb68159-a571-4028-abd5-a99e26f56c3f`) to https://dbsblo.slsblx.com (2026-09-15)
 - Redeployed branch `dev` (build `b8464118-20a5-49b0-ab88-f6bee5eb75e8`) to https://dbsblo.slsblx.com (2026-09-15)
 - Walk requests through acknowledge → assign vendor or in-house staff → start work → confirm done with after photo; notify only the assignee (2026-09-15)
 - On resident Not done, return the job to In progress, alert staff (and the vendor if assigned), and require a new after photo (2026-09-15)
