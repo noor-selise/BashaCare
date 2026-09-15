@@ -51,7 +51,7 @@ Two valid paths after Karim submits. **Confirm AI is recommended but not enforce
 
 **Example:** `bathroom light flickering, urgent — cannot see at night`  
 → **Electrical**, **Urgent** (word “urgent” alone does **not** become Emergency).  
-**Avoid** “leak” / “shaft” in demo messages unless testing emergency — those force **Emergency**.
+**Avoid** “shaft” / “burst” / “trapped” / “fire” unless testing emergency. A slow leak is a plumbing request. “Not urgent” stays routine.
 
 ### Path 1 — With Confirm AI (recommended demo)
 

@@ -50,4 +50,28 @@ if (dripProposal.urgency === "emergency") {
   throw new Error("slow drip should not auto-classify as emergency")
 }
 
+const leakProposal = proposeFromMessage("QA — bathroom tap leaking slowly", [])
+if (leakProposal.urgency === "emergency") {
+  throw new Error("a slow leak is a request, not an emergency")
+}
+if (leakProposal.category !== "water") {
+  throw new Error(`expected water for a leaking tap, got ${leakProposal.category}`)
+}
+
+const notUrgentProposal = proposeFromMessage("QA skip AI — kitchen sink slow drain, not urgent", [])
+if (notUrgentProposal.urgency === "urgent") {
+  throw new Error('"not urgent" must not match the urgent heuristic')
+}
+if (notUrgentProposal.urgency === "emergency") {
+  throw new Error('"not urgent" plumbing is not an emergency')
+}
+
+const shaftProposal = proposeFromMessage(
+  "Water leaking into the lift shaft from 10-A bathroom. Floor is wet. This is not a drip — it is running.",
+  []
+)
+if (shaftProposal.urgency !== "emergency") {
+  throw new Error("lift-shaft leak must stay emergency")
+}
+
 console.log("seed check ok: 6 pump jobs, ৳38,500, open emergency present, AI urgency sane")

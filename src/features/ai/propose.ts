@@ -23,9 +23,10 @@ export const proposeFromMessage = (
             ? "garden"
             : "other"
 
-  const isEmergency = /shaft|fire|trapped|bonna|namte parsi na|leak/.test(text)
+  const isEmergency = /shaft|fire|trapped|bonna|namte parsi na|burst/.test(text)
   const claimsEmergency = /\bemergency\b/.test(text)
-  const claimsUrgent = /\burgent\b/.test(text)
+  const negatedUrgent = /\bnot\s+urgent\b|\bnon-urgent\b/.test(text)
+  const claimsUrgent = /\burgent\b/.test(text) && !negatedUrgent
   const urgency: Urgency = isEmergency
     ? "emergency"
     : claimsEmergency
@@ -35,7 +36,7 @@ export const proposeFromMessage = (
         : "routine"
 
   const reason = isEmergency
-    ? "Message describes a life-safety or structural risk (leak, trapped, shaft)."
+    ? "Message describes a life-safety or structural risk (burst, trapped, shaft)."
     : claimsEmergency
       ? "Resident labelled this an emergency. Staff should confirm — intermittent lift faults are often urgent, not emergency."
       : claimsUrgent

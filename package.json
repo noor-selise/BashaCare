@@ -15,7 +15,9 @@
     "check:highlight": "npx tsx src/lib/request-highlight-check.ts",
     "check:inbox": "npx tsx src/lib/inbox-filters-check.ts",
     "check:lifecycle": "npx tsx src/features/requests/lifecycle-check.ts",
-    "check:notices": "npx tsx src/lib/notices-check.ts"
+    "check:notices": "npx tsx src/lib/notices-check.ts",
+    "check:registry": "npx tsx src/lib/blocks/registry-check.ts",
+    "check:override": "npx tsx src/features/ai/override-check.ts"
   },
   "dependencies": {
     "@seliseblocks/client": "latest",

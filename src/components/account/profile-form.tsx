@@ -51,9 +51,7 @@ export const ProfileForm = ({ vendors }: { vendors: Vendor[] }) => {
   if (!actor) return null
 
   const vendor = actor.vendorId ? findVendor(actor.vendorId, vendors) : undefined
-  const photoRequired = isBlocksConfigured
-  const hasPhoto = Boolean(photoFileId)
-  const canSave = name.trim() && title.trim() && (!photoRequired || hasPhoto)
+  const canSave = Boolean(name.trim() && title.trim())
 
   const handlePhotoUploaded = async (fileId: string, mimeType: string) => {
     setPhotoFileId(fileId)
@@ -164,9 +162,9 @@ export const ProfileForm = ({ vendors }: { vendors: Vendor[] }) => {
         <Button type="submit" disabled={saving || !canSave}>
           {saving ? "Saving…" : "Save profile"}
         </Button>
-        {photoRequired && !hasPhoto ? (
+        {!photoFileId && isBlocksConfigured ? (
           <p role="status" className="text-sm text-ink-soft">
-            Upload a profile photo to save.
+            Photo is optional — name and title save without one.
           </p>
         ) : null}
       </div>

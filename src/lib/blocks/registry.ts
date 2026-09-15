@@ -1,5 +1,6 @@
 import { savePerson } from "@/lib/blocks/building-data"
 import { getBlocksClient } from "@/lib/blocks/client"
+import { accessStatusFromIamList } from "@/lib/blocks/registry-status"
 import type { Person, Role } from "@/types"
 
 export type InviteInput = {
@@ -40,48 +41,16 @@ export const invitePerson = async (input: InviteInput): Promise<Person> => {
   })
 }
 
-type IamUserRow = {
-  email?: string
-  active?: boolean
-  isActive?: boolean
-}
-
-const readIamUsers = (response: unknown): IamUserRow[] => {
-  const record = response as {
-    data?: IamUserRow[] | { items?: IamUserRow[] }
-    items?: IamUserRow[]
-  }
-  if (Array.isArray(record.data)) return record.data
-  if (record.data && Array.isArray(record.data.items)) return record.data.items
-  return record.items ?? []
-}
-
-const iamUserIsActive = (user: IamUserRow) => {
-  if (typeof user.active === "boolean") return user.active
-  if (typeof user.isActive === "boolean") return user.isActive
-  return false
-}
-
 export const listAccessStatus = async (
   emails: string[]
 ): Promise<Record<string, "pending" | "active" | "unknown">> => {
   const client = getBlocksClient()
-  const status: Record<string, "pending" | "active" | "unknown"> = {}
-  if (!client || emails.length === 0) return status
+  if (!client || emails.length === 0) return {}
 
-  await Promise.all(
-    emails.map(async (email) => {
-      try {
-        const res = await client.iam.users.list({ pageNo: 1, pageSize: 1, search: email })
-        const match = readIamUsers(res).find(
-          (user) => user.email?.trim().toLowerCase() === email.trim().toLowerCase()
-        )
-        status[email] = match ? (iamUserIsActive(match) ? "active" : "pending") : "unknown"
-      } catch {
-        status[email] = "unknown"
-      }
-    })
-  )
-
-  return status
+  try {
+    const res = await client.iam.users.list({ pageNo: 1, pageSize: 100 })
+    return accessStatusFromIamList(emails, res)
+  } catch {
+    return {}
+  }
 }

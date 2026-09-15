@@ -4,6 +4,7 @@ import { motion } from "framer-motion"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/toast"
+import { canConfirmAi } from "@/features/ai/override"
 import { categoryLabel, formatWhen, urgencyLabel } from "@/lib/format"
 import { fadeRise } from "@/lib/motion"
 import { useBuilding } from "@/lib/store"
@@ -24,7 +25,7 @@ export const AiPanel = ({ request }: { request: RequestRecord }) => {
   const { applyAi } = useBuilding()
   const toast = useToast()
   const [urgency, setUrgency] = useState<Urgency>(request.ai?.urgency ?? request.urgency)
-  const [reason, setReason] = useState("Intermittent jam is urgent. Shaft leak is the emergency.")
+  const [reason, setReason] = useState("")
 
   if (!request.ai) return null
 
@@ -33,10 +34,13 @@ export const AiPanel = ({ request }: { request: RequestRecord }) => {
     (event) => event.label === AI_CONFIRM_LABEL || event.label === AI_OVERRIDE_LABEL
   )
 
+  const proposed = request.ai.urgency
+  const canSubmit = canConfirmAi(proposed, urgency, reason)
+
   const handleConfirm = () => {
-    if (readOnly) return
-    const overridden = urgency !== request.ai?.urgency
-    applyAi(request.id, urgency, overridden ? reason : undefined)
+    if (readOnly || !canSubmit) return
+    const overridden = urgency !== proposed
+    applyAi(request.id, urgency, overridden ? reason.trim() : undefined)
     toast.success(overridden ? "AI urgency overridden." : "AI suggestion confirmed.")
   }
 
@@ -107,15 +111,26 @@ export const AiPanel = ({ request }: { request: RequestRecord }) => {
               Why override
               <input
                 id={`reason-${request.id}`}
+                required
+                aria-required="true"
                 className="mt-1 block min-h-11 w-full border border-hairline bg-surface px-3 text-[16px]"
                 value={reason}
                 onChange={(event) => setReason(event.target.value)}
               />
             </label>
           ) : null}
-          <Button onClick={handleConfirm}>
+          <Button
+            onClick={handleConfirm}
+            disabled={!canSubmit}
+            aria-disabled={!canSubmit}
+          >
             {urgency === request.ai.urgency ? "Confirm AI" : "Override AI"}
           </Button>
+          {urgency !== request.ai.urgency && !canSubmit ? (
+            <p role="status" className="text-sm text-ink-soft">
+              Type a reason to override.
+            </p>
+          ) : null}
         </div>
       )}
     </motion.section>

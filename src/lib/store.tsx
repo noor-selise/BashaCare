@@ -8,6 +8,7 @@ import {
   useState,
   type ReactNode
 } from "react"
+import { canConfirmAi } from "@/features/ai/override"
 import { proposeFromMessage } from "@/features/ai/propose"
 import {
   deskRoleFromSlugs,
@@ -319,14 +320,16 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
         )
         if (alreadyReviewed) return
 
+        const from = item.ai?.urgency ?? item.urgency
+        if (!canConfirmAi(from, urgency, reason)) return
+
         patchRequest(id, (item) => {
-          const from = item.ai?.urgency ?? item.urgency
           const override = from === urgency
             ? item.staffOverride
             : {
                 from,
                 to: urgency,
-                reason: reason ?? "Staff judgement",
+                reason: (reason ?? "").trim(),
                 actorId: state.session?.actorId ?? "hasan@yopmail.com"
               }
           return addEvent(
