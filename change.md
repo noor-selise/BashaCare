@@ -4,6 +4,8 @@ All changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Persist profile photo to the Person row as soon as upload finishes so refresh keeps the new image (2026-09-15)
+- Grant desk roles Blocks file-storage endpoints and share /Cloud/Default/BashaCare Evidence so resident photo upload works on prod (2026-09-15)
 - Fix image upload to use Blocks get-pre-signed-url under /Cloud/Default/BashaCare Evidence; stop using invalid root parent and broken extension allow-list (2026-09-15)
 - Document skip-Confirm-AI path and full request reference in MANUAL-QA.md (2026-09-15)
 - Lock AI triage panel after staff confirm or when request is closed; add MANUAL-QA.md checklist (2026-09-15)

@@ -21,7 +21,7 @@ type ProfilePhotoProps = {
   photoFileId?: string
   size?: "sm" | "lg"
   editable?: boolean
-  onUploaded?: (fileId: string, mimeType: string) => void
+  onUploaded?: (fileId: string, mimeType: string) => void | Promise<void>
 }
 
 export const ProfilePhoto = ({
@@ -70,9 +70,16 @@ export const ProfilePhoto = ({
 
     try {
       const { fileId, mimeType } = await uploadProfilePhoto(email, file)
-      onUploaded?.(fileId, mimeType)
+      await onUploaded?.(fileId, mimeType)
+      setPreviewUrl((previous) => {
+        if (previous) URL.revokeObjectURL(previous)
+        return null
+      })
     } catch (uploadError) {
-      setPreviewUrl(null)
+      setPreviewUrl((previous) => {
+        if (previous) URL.revokeObjectURL(previous)
+        return null
+      })
       setError(uploadError instanceof Error ? uploadError.message : "Photo upload failed.")
     } finally {
       setUploading(false)

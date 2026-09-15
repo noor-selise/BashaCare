@@ -55,9 +55,28 @@ export const ProfileForm = ({ vendors }: { vendors: Vendor[] }) => {
   const hasPhoto = Boolean(photoFileId)
   const canSave = name.trim() && title.trim() && (!photoRequired || hasPhoto)
 
-  const handlePhotoUploaded = (fileId: string, mimeType: string) => {
+  const handlePhotoUploaded = async (fileId: string, mimeType: string) => {
     setPhotoFileId(fileId)
     setPhotoMimeType(mimeType)
+    // Persist immediately — upload alone only showed a blob preview, so refresh
+    // reloaded the previous Person.photoFileId until Save was clicked.
+    try {
+      await toast.promise(
+        updateProfile({
+          name: name.trim() || actor.name,
+          title: title.trim() || actor.title,
+          photoFileId: fileId,
+          photoMimeType: mimeType
+        }),
+        {
+          loading: "Saving photo…",
+          success: "Photo saved.",
+          error: (caught) => (caught instanceof Error ? caught.message : "Could not save photo.")
+        }
+      )
+    } catch {
+      // toast.promise already reported; keep fileId so Save profile can retry
+    }
   }
 
   const handleSubmit = async (event: FormEvent) => {
