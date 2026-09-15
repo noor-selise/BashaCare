@@ -4,6 +4,7 @@ All changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Replace Alerts card list with a paginated table (15/page) filtered by read, request open/closed, and date range (2026-09-15)
 - Persist profile photo to the Person row as soon as upload finishes so refresh keeps the new image (2026-09-15)
 - Grant desk roles Blocks file-storage endpoints and share /Cloud/Default/BashaCare Evidence so resident photo upload works on prod (2026-09-15)
 - Fix image upload to use Blocks get-pre-signed-url under /Cloud/Default/BashaCare Evidence; stop using invalid root parent and broken extension allow-list (2026-09-15)
