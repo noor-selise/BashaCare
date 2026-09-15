@@ -4,6 +4,7 @@ All changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Fix image upload to use Blocks get-pre-signed-url under /Cloud/Default/BashaCare Evidence; stop using invalid root parent and broken extension allow-list (2026-09-15)
 - Document skip-Confirm-AI path and full request reference in MANUAL-QA.md (2026-09-15)
 - Lock AI triage panel after staff confirm or when request is closed; add MANUAL-QA.md checklist (2026-09-15)
 - Redeployed branch `dev` (build `6e7f596a-fa13-4918-b0da-5b98176a3c9f`, commit `97cd63e`) to https://dbsblo.slsblx.com (2026-09-15)
