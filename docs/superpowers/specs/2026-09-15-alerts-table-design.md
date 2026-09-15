@@ -63,7 +63,7 @@ Filters **AND** together. Role scoping stays as today (admin sees all; others se
 
 - `All` — no request-status filter
 - `Open` — notice has `requestId` and linked request status is **not** `verified_closed` or `rejected`
-- `Closed` — linked request status is `verified_closed` (rejected counts as closed for this filter)
+- `Closed` — linked request status is `verified_closed` **or** `rejected`
 - Notices **without** a linked request (or missing request row) **do not match** `Open` or `Closed`; they only appear when Request is `All`
 
 ### Date (`notice.at`)
