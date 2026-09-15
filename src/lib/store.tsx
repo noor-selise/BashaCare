@@ -28,6 +28,21 @@ import {
 } from "@/lib/blocks/building-data"
 import { saveOwnProfile, type ProfilePatch } from "@/lib/blocks/profile"
 import { invitePerson as invitePersonRecord, type InviteInput } from "@/lib/blocks/registry"
+import {
+  applyAssign,
+  applyRejectVerify,
+  canAcknowledge,
+  canAssign,
+  canConfirmDone,
+  canRejectVerify,
+  canStartWork,
+  hasAfterPhoto,
+  MARK_DONE_LABEL,
+  REJECT_VERIFY_LABEL,
+  vendorContactEmail,
+  type AssignTarget,
+  type LifecycleActor
+} from "@/features/requests/lifecycle"
 import { markRequestNoticesRead, noticeDraft } from "@/lib/notices"
 import { sameActorId } from "@/lib/request-highlight"
 import type {
@@ -60,7 +75,8 @@ type BuildingApi = BuildingState & {
   submitRequest: (input: { message: string; id?: string; evidence?: Evidence[] }) => Promise<string>
   acknowledge: (id: string) => void
   applyAi: (id: string, urgency: Urgency, reason?: string) => void
-  assignVendor: (id: string, vendorId: string) => void
+  assignWork: (id: string, target: AssignTarget) => void
+  startWork: (id: string) => void
   markDone: (id: string, after?: Evidence, cost?: number) => void
   verify: (id: string) => void
   rejectVerify: (id: string) => void
@@ -151,6 +167,15 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
 
   const api = useMemo<BuildingApi>(() => {
     const actor = state.session ? findPerson(state.session.actorId, state.people) : null
+
+    const lifecycleActor = (): LifecycleActor | null => {
+      if (!state.session) return null
+      return {
+        role: state.session.role,
+        actorId: state.session.actorId,
+        vendorId: actor?.vendorId
+      }
+    }
 
     const persist = (item: RequestRecord) => {
       void saveRequest(item).then((saved) => {
@@ -270,10 +295,14 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
         return finalRecord.id
       },
       acknowledge: (id) => {
-        patchRequest(id, (item) => {
+        const ctx = lifecycleActor()
+        const item = state.requests.find((row) => row.id === id)
+        if (!ctx || !item || !canAcknowledge(item.status, ctx)) return
+
+        patchRequest(id, (row) => {
           return addEvent(
             {
-              ...item,
+              ...row,
               status: "acknowledged",
               acknowledgedAt: now()
             },
@@ -313,22 +342,24 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
           )
         })
       },
-      assignVendor: (id, vendorId) => {
+      assignWork: (id, target) => {
+        const ctx = lifecycleActor()
         const item = state.requests.find((row) => row.id === id)
-        if (!item || item.status === "verified_closed" || item.status === "rejected") return
+        if (!ctx || !item || !canAssign(item.status, ctx)) return
 
         const assigned = addEvent(
-          {
-            ...item,
-            vendorId,
-            status: "assigned",
-            assignedAt: now()
-          },
-          "Assigned to vendor"
+          applyAssign(item, target, now()),
+          target.kind === "vendor" ? "Assigned to vendor" : "Assigned to in-house staff"
         )
         patchRequest(id, () => assigned)
 
-        const draft = noticeDraft("assigned", assigned)
+        const recipientId =
+          target.kind === "vendor"
+            ? vendorContactEmail(target.vendorId, state.people)
+            : target.staffAssigneeId
+        if (!recipientId) return
+
+        const draft = noticeDraft("assigned", assigned, recipientId)
         const notice: Notice = {
           ...draft,
           id: nextId("n"),
@@ -341,14 +372,25 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
         }))
         void saveNotice(notice)
       },
-      markDone: (id, after, cost) => {
+      startWork: (id) => {
+        const ctx = lifecycleActor()
         const item = state.requests.find((row) => row.id === id)
-        if (
-          !item ||
-          item.status === "verified_closed" ||
-          item.status === "awaiting_verification" ||
-          item.status === "rejected"
-        ) {
+        if (!ctx || !item || !canStartWork(item.status, ctx, item)) return
+
+        patchRequest(id, (row) => {
+          return addEvent(
+            {
+              ...row,
+              status: "in_progress"
+            },
+            "Work started"
+          )
+        })
+      },
+      markDone: (id, after, cost) => {
+        const ctx = lifecycleActor()
+        const item = state.requests.find((row) => row.id === id)
+        if (!ctx || !item || !canConfirmDone(item.status, ctx, item) || !hasAfterPhoto(item, after)) {
           return
         }
 
@@ -360,7 +402,7 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
             cost: cost !== undefined ? cost : item.cost,
             evidence: after ? [...item.evidence, after] : item.evidence
           },
-          "Work marked done — waiting for resident verify"
+          MARK_DONE_LABEL
         )
         patchRequest(id, () => updated)
 
@@ -412,14 +454,43 @@ export const BuildingProvider = ({ children }: { children: ReactNode }) => {
         void saveNotice(notice)
       },
       rejectVerify: (id) => {
-        patchRequest(id, (item) => {
-          return addEvent(
-            {
-              ...item,
-              status: "in_progress"
-            },
-            "Resident rejected close — back in progress"
-          )
+        const item = state.requests.find((row) => row.id === id)
+        if (!item || !canRejectVerify(item.status)) return
+
+        const reopened = addEvent(applyRejectVerify(item), REJECT_VERIFY_LABEL)
+        patchRequest(id, () => reopened)
+
+        const vendorEmail = reopened.vendorId
+          ? vendorContactEmail(reopened.vendorId, state.people)
+          : undefined
+        const drafts = [
+          noticeDraft("not_done", reopened),
+          ...(vendorEmail ? [noticeDraft("not_done", reopened, vendorEmail)] : [])
+        ]
+
+        const notices = drafts.map((draft) => ({
+          ...draft,
+          id: nextId("n"),
+          at: now(),
+          read: false
+        }))
+
+        setState((current) => {
+          current.notices.forEach((row) => {
+            if (row.requestId === id && row.role === "resident" && !row.read) {
+              void markNoticeReadRemote(row.id)
+            }
+          })
+          const withVerifyRead = current.notices.map((row) => {
+            return row.requestId === id && row.role === "resident" ? { ...row, read: true } : row
+          })
+          return {
+            ...current,
+            notices: [...notices, ...withVerifyRead]
+          }
+        })
+        notices.forEach((notice) => {
+          void saveNotice(notice)
         })
       },
       markNoticeRead: (id) => {

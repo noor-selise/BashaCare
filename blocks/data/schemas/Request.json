@@ -79,6 +79,17 @@
       "validationRule": null
     },
     {
+      "name": "staffAssigneeId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Assigned in-house staff Person email",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
+    },
+    {
       "name": "equipmentId",
       "type": "String",
       "isArray": false,

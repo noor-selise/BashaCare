@@ -46,6 +46,17 @@
       "validationRule": null
     },
     {
+      "name": "recipientId",
+      "type": "String",
+      "isArray": false,
+      "isPIIData": false,
+      "isUniqueData": false,
+      "description": "Person email of the intended recipient",
+      "requiredOn": "None",
+      "fields": [],
+      "validationRule": null
+    },
+    {
       "name": "at",
       "type": "String",
       "isArray": false,

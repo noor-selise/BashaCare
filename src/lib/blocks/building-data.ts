@@ -13,6 +13,7 @@ type RequestRow = Record<string, unknown> & {
   urgency?: RequestRecord["urgency"]
   status?: RequestRecord["status"]
   vendorId?: string
+  staffAssigneeId?: string
   equipmentId?: string
   cost?: number
   costCategory?: string
@@ -51,6 +52,7 @@ const requestFromRow = (row: RequestRow): RequestRecord => {
     urgency: (row.urgency ?? "routine") as RequestRecord["urgency"],
     status: (row.status ?? "submitted") as RequestRecord["status"],
     vendorId: row.vendorId ? String(row.vendorId) : undefined,
+    staffAssigneeId: row.staffAssigneeId ? String(row.staffAssigneeId) : undefined,
     equipmentId: row.equipmentId ? String(row.equipmentId) : undefined,
     cost: typeof row.cost === "number" ? row.cost : undefined,
     costCategory: row.costCategory ? String(row.costCategory) : undefined,
@@ -76,6 +78,7 @@ const requestToRow = (item: RequestRecord) => {
     urgency: item.urgency,
     status: item.status,
     vendorId: item.vendorId ?? "",
+    staffAssigneeId: item.staffAssigneeId ?? "",
     equipmentId: item.equipmentId ?? "",
     cost: item.cost ?? 0,
     costCategory: item.costCategory ?? "",
@@ -233,6 +236,7 @@ export const loadBuildingRecords = async () => {
       "urgency",
       "status",
       "vendorId",
+      "staffAssigneeId",
       "equipmentId",
       "cost",
       "costCategory",
@@ -252,7 +256,7 @@ export const loadBuildingRecords = async () => {
     fields: ["title", "body", "vendorId", "equipmentId", "at", "actorId"]
   })
   const noticesApi = client.data.collection<Notice & { itemId?: string }>("Notice", {
-    fields: ["role", "title", "body", "requestId", "at", "read"]
+    fields: ["role", "title", "body", "requestId", "recipientId", "at", "read"]
   })
   const vendorsApi = client.data.collection<Vendor & { itemId?: string; slug?: string }>("Vendor", {
     fields: ["name", "trade"]
@@ -321,6 +325,7 @@ export const loadBuildingRecords = async () => {
       title: String(row.title ?? ""),
       body: String(row.body ?? ""),
       requestId: row.requestId ? String(row.requestId) : undefined,
+      recipientId: row.recipientId ? String(row.recipientId) : undefined,
       at: String(row.at ?? ""),
       read: Boolean(row.read)
     })),
@@ -456,6 +461,7 @@ export const saveNotice = async (item: Notice) => {
     title: item.title,
     body: item.body,
     requestId: item.requestId ?? "",
+    recipientId: item.recipientId ?? "",
     at: item.at,
     read: item.read
   })

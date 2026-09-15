@@ -11,6 +11,7 @@ import { useToast } from "@/components/ui/toast"
 import { formatWhen, statusLabel } from "@/lib/format"
 import { findPerson } from "@/data/directory"
 import { sameActorId } from "@/lib/request-highlight"
+import { needsNewAfterPhoto } from "@/features/requests/lifecycle"
 import { useBuilding, useSessionActor } from "@/lib/store"
 
 const ResidentRequestPage = () => {
@@ -63,12 +64,17 @@ const ResidentRequestPage = () => {
                 variant="ghost"
                 onClick={() => {
                   rejectVerify(request.id)
-                  toast.info("Sent back — staff will follow up.")
+                  toast.info("Sent back — staff will continue the work.")
                 }}
               >
                 Not done
               </Button>
             </div>
+          ) : needsNewAfterPhoto(request) ? (
+            <p className="border border-hairline bg-garden-wash p-4 text-ink">
+              You said the work was not done. Staff are continuing it — watch this request until
+              they ask you to verify again.
+            </p>
           ) : null}
           <ol className="space-y-2 border-t border-hairline pt-4">
             {request.timeline.map((event) => (

@@ -3,16 +3,15 @@
 import { AlertsTable } from "@/components/inbox/alerts-table"
 import { AppShell } from "@/components/layout/app-shell"
 import { EmptyState } from "@/components/ui/empty-state"
+import { visibleNotices } from "@/lib/notices"
 import { useBuilding, useSessionActor } from "@/lib/store"
 
 const InboxPage = () => {
   const actor = useSessionActor()
   const { notices, requests, markNoticeRead } = useBuilding()
-  const mine = notices.filter((item) => {
-    if (!actor) return false
-    if (actor.role === "admin") return true
-    return item.role === "all" || item.role === actor.role
-  })
+  const mine = actor
+    ? visibleNotices(notices, { role: actor.role, id: actor.id, email: actor.email })
+    : []
 
   return (
     <AppShell allow={["admin", "resident", "staff", "committee", "vendor"]}>

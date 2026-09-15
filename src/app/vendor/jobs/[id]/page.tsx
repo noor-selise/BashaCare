@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { useParams } from "next/navigation"
-import { useState, type FormEvent } from "react"
+import { useState } from "react"
 import { AppShell } from "@/components/layout/app-shell"
 import { EvidenceStrip } from "@/components/requests/evidence-strip"
 import { EvidenceUpload } from "@/components/requests/evidence-upload"
@@ -10,26 +10,34 @@ import { RequestContext } from "@/components/requests/request-context"
 import { StatusRail } from "@/components/requests/status-rail"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/toast"
-import { useBuilding } from "@/lib/store"
+import {
+  canConfirmDone,
+  canStartWork,
+  hasAfterPhoto,
+  needsNewAfterPhoto,
+  type LifecycleActor
+} from "@/features/requests/lifecycle"
+import { useBuilding, useSessionActor } from "@/lib/store"
 import type { Evidence } from "@/types"
 
 const VendorJobPage = () => {
   const { id } = useParams<{ id: string }>()
-  const { visibleRequests, markDone, people } = useBuilding()
+  const { visibleRequests, startWork, markDone, people } = useBuilding()
+  const actor = useSessionActor()
   const toast = useToast()
   const job = visibleRequests().find((item) => item.id === id)
   const [afterEvidence, setAfterEvidence] = useState<Evidence | null>(null)
-  const [cost, setCost] = useState("")
 
-  const handleDone = (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault()
-    const raw = new FormData(event.currentTarget).get("cost")
-    let parsedCost: number | undefined
-    if (raw !== null && String(raw).trim() !== "") {
-      const value = Number(raw)
-      if (Number.isFinite(value) && value >= 0) parsedCost = value
+  const ctx: LifecycleActor | null = actor
+    ? { role: actor.role, actorId: actor.email || actor.id, vendorId: actor.vendorId }
+    : null
+
+  const handleDone = () => {
+    if (!job || !hasAfterPhoto(job, afterEvidence ?? undefined)) {
+      toast.error("Attach an after photo before confirming done.")
+      return
     }
-    markDone(job!.id, afterEvidence ?? undefined, parsedCost)
+    markDone(job.id, afterEvidence ?? undefined)
     toast.success("Marked done — waiting for resident to verify.")
   }
 
@@ -39,6 +47,11 @@ const VendorJobPage = () => {
       : job?.category === "water" || job?.category === "plumbing"
         ? "water"
         : "other"
+
+  const showStart = Boolean(ctx && job && canStartWork(job.status, ctx, job))
+  const showConfirm = Boolean(ctx && job && canConfirmDone(job.status, ctx, job))
+  const confirmReady = Boolean(job && hasAfterPhoto(job, afterEvidence ?? undefined))
+  const sentBack = Boolean(job && needsNewAfterPhoto(job))
 
   return (
     <AppShell allow={["vendor"]}>
@@ -54,8 +67,24 @@ const VendorJobPage = () => {
           <StatusRail status={job.status} />
           <p className="font-bengali text-lg">{job.message}</p>
           <EvidenceStrip items={job.evidence} />
-          {job.status === "assigned" || job.status === "in_progress" || job.status === "acknowledged" ? (
-            <form onSubmit={handleDone} className="grid gap-3 border border-hairline bg-surface p-4">
+          {sentBack ? (
+            <p className="border border-hairline bg-garden-wash p-4 text-ink">
+              The resident said this work was not done. Continue the job and attach a new after
+              photo before confirming again.
+            </p>
+          ) : null}
+          {showStart ? (
+            <Button
+              onClick={() => {
+                startWork(job.id)
+                toast.success("Work started — status is In progress.")
+              }}
+            >
+              Start work
+            </Button>
+          ) : null}
+          {showConfirm ? (
+            <div className="grid gap-3 border border-hairline bg-surface p-4">
               <EvidenceUpload
                 requestId={job.id}
                 kind="after"
@@ -63,20 +92,10 @@ const VendorJobPage = () => {
                 buttonLabel="Attach after photo"
                 onUploaded={setAfterEvidence}
               />
-              <label htmlFor="vendor-cost">
-                Cost (৳)
-                <input
-                  id="vendor-cost"
-                  name="cost"
-                  type="number"
-                  min={0}
-                  value={cost}
-                  onChange={(event) => setCost(event.target.value)}
-                  className="mt-1 min-h-11 w-full border border-hairline px-3 text-[16px]"
-                />
-              </label>
-              <Button type="submit">Mark done — wait for verify</Button>
-            </form>
+              <Button type="button" disabled={!confirmReady} onClick={handleDone}>
+                Confirm done — wait for verify
+              </Button>
+            </div>
           ) : null}
           {job.status === "awaiting_verification" ? (
             <p className="border border-hairline bg-garden-wash p-4 text-ink">

@@ -12,6 +12,18 @@ import { AiPanel } from "@/components/triage/ai-panel"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/components/ui/toast"
 import { findPerson } from "@/data/directory"
+import {
+  canAcknowledge,
+  canAssign,
+  canConfirmDone,
+  canStartWork,
+  currentAssignValue,
+  hasAfterPhoto,
+  inHouseStaffPeople,
+  needsNewAfterPhoto,
+  parseAssignValue,
+  type LifecycleActor
+} from "@/features/requests/lifecycle"
 import { formatWhen, statusLabel, urgencyLabel } from "@/lib/format"
 import { formatTaka } from "@/lib/money"
 import { useBuilding, useSessionActor } from "@/lib/store"
@@ -19,24 +31,44 @@ import type { Evidence } from "@/types"
 
 const StaffRequestPage = () => {
   const { id } = useParams<{ id: string }>()
-  const { requests, vendors, acknowledge, assignVendor, markDone, people } = useBuilding()
+  const { requests, vendors, acknowledge, assignWork, startWork, markDone, people } = useBuilding()
   const actor = useSessionActor()
   const toast = useToast()
   const request = requests.find((item) => item.id === id)
   const [afterEvidence, setAfterEvidence] = useState<Evidence | null>(null)
   const [cost, setCost] = useState("")
 
+  const ctx: LifecycleActor | null = actor
+    ? { role: actor.role, actorId: actor.email || actor.id, vendorId: actor.vendorId }
+    : null
+
+  const staffPeople = inHouseStaffPeople(people)
+  const fallbackAssign = vendors[0]
+    ? { kind: "vendor" as const, vendorId: vendors[0].id }
+    : staffPeople[0]
+      ? { kind: "staff" as const, staffAssigneeId: staffPeople[0].email }
+      : undefined
+
   const handleAssign = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    const vendorId = new FormData(event.currentTarget).get("vendorId")
-    if (typeof vendorId !== "string") return
-    assignVendor(id, vendorId)
-    const vendorName = vendors.find((item) => item.id === vendorId)?.name ?? "vendor"
-    toast.success(`Assigned to ${vendorName}.`)
+    const raw = new FormData(event.currentTarget).get("assignee")
+    if (typeof raw !== "string") return
+    const target = parseAssignValue(raw)
+    if (!target) return
+    assignWork(id, target)
+    const label =
+      target.kind === "vendor"
+        ? (vendors.find((item) => item.id === target.vendorId)?.name ?? "vendor")
+        : findPerson(target.staffAssigneeId, people).name
+    toast.success(`Assigned to ${label}.`)
   }
 
   const handleDone = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    if (!request || !hasAfterPhoto(request, afterEvidence ?? undefined)) {
+      toast.error("Attach an after photo before confirming done.")
+      return
+    }
     const raw = new FormData(event.currentTarget).get("cost")
     let parsedCost: number | undefined
     if (raw !== null && String(raw).trim() !== "") {
@@ -54,20 +86,14 @@ const StaffRequestPage = () => {
         ? "water"
         : "other"
 
-  const canAssign =
-    request &&
-    request.status !== "verified_closed" &&
-    request.status !== "rejected" &&
-    request.status !== "awaiting_verification"
-
-  const canMarkDone =
-    request &&
-    request.status !== "verified_closed" &&
-    request.status !== "rejected" &&
-    request.status !== "awaiting_verification"
-
+  const showAcknowledge = Boolean(ctx && request && canAcknowledge(request.status, ctx))
+  const showAssign = Boolean(ctx && request && canAssign(request.status, ctx) && fallbackAssign)
+  const showStart = Boolean(ctx && request && canStartWork(request.status, ctx, request))
+  const showConfirm = Boolean(ctx && request && canConfirmDone(request.status, ctx, request))
   const awaitingVerify = request?.status === "awaiting_verification"
   const resident = request ? findPerson(request.residentId, people) : null
+  const confirmReady = Boolean(request && hasAfterPhoto(request, afterEvidence ?? undefined))
+  const sentBack = Boolean(request && needsNewAfterPhoto(request))
 
   return (
     <AppShell allow={["staff"]}>
@@ -92,7 +118,7 @@ const StaffRequestPage = () => {
             {request.cost != null ? (
               <p className="font-mono">{formatTaka(request.cost)}</p>
             ) : null}
-            {request.status === "submitted" ? (
+            {showAcknowledge ? (
               <Button
                 variant="danger"
                 onClick={() => {
@@ -119,32 +145,62 @@ const StaffRequestPage = () => {
                 ) : null}
               </div>
             ) : null}
-            {canAssign ? (
+            {showAssign ? (
               <form onSubmit={handleAssign} className="flex flex-wrap gap-2">
-                <label className="sr-only" htmlFor="vendorId">
-                  Vendor
+                <label className="sr-only" htmlFor="assignee">
+                  Assign to vendor or in-house staff
                 </label>
                 <select
-                  id="vendorId"
-                  name="vendorId"
+                  id="assignee"
+                  name="assignee"
                   className="min-h-11 border border-hairline bg-surface px-3 text-[16px]"
-                  defaultValue={request.vendorId ?? vendors[0]?.id}
+                  defaultValue={currentAssignValue(request, fallbackAssign)}
+                  key={currentAssignValue(request, fallbackAssign)}
                 >
-                  {vendors.map((vendor) => (
-                    <option key={vendor.id} value={vendor.id}>
-                      {vendor.name}
-                    </option>
-                  ))}
+                  {vendors.length > 0 ? (
+                    <optgroup label="Vendors">
+                      {vendors.map((vendor) => (
+                        <option key={vendor.id} value={`vendor:${vendor.id}`}>
+                          {vendor.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ) : null}
+                  {staffPeople.length > 0 ? (
+                    <optgroup label="In-house staff">
+                      {staffPeople.map((person) => (
+                        <option key={person.email} value={`staff:${person.email}`}>
+                          {person.name}
+                        </option>
+                      ))}
+                    </optgroup>
+                  ) : null}
                 </select>
                 <Button type="submit">Assign</Button>
               </form>
+            ) : null}
+            {sentBack ? (
+              <p className="border border-hairline bg-garden-wash p-4 text-ink">
+                The resident said this work was not done. Continue the job and attach a new after
+                photo before confirming again.
+              </p>
+            ) : null}
+            {showStart ? (
+              <Button
+                onClick={() => {
+                  startWork(request.id)
+                  toast.success("Work started — status is In progress.")
+                }}
+              >
+                Start work
+              </Button>
             ) : null}
             {request.status === "verified_closed" ? (
               <p className="border border-hairline bg-surface-2 p-4 text-ink-soft">
                 This request is verified closed.
               </p>
             ) : null}
-            {canMarkDone ? (
+            {showConfirm ? (
               <form onSubmit={handleDone} className="grid gap-3 border border-hairline bg-surface p-4">
                 <EvidenceUpload
                   requestId={request.id}
@@ -165,7 +221,9 @@ const StaffRequestPage = () => {
                     className="mt-1 min-h-11 w-full border border-hairline px-3 text-[16px]"
                   />
                 </label>
-                <Button type="submit">Mark done — wait for verify</Button>
+                <Button type="submit" disabled={!confirmReady}>
+                  Confirm done — wait for verify
+                </Button>
               </form>
             ) : null}
             <ol className="space-y-2 text-sm text-ink-soft">

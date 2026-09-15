@@ -88,6 +88,7 @@ export type RequestRecord = {
   urgency: Urgency
   status: RequestStatus
   vendorId?: string
+  staffAssigneeId?: string
   equipmentId?: string
   cost?: number
   costCategory?: string
@@ -124,6 +125,7 @@ export type Notice = {
   title: string
   body: string
   requestId?: string
+  recipientId?: string
   at: string
   read: boolean
 }

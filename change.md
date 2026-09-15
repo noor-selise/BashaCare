@@ -4,6 +4,8 @@ All changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Walk requests through acknowledge → assign vendor or in-house staff → start work → confirm done with after photo; notify only the assignee (2026-09-15)
+- On resident Not done, return the job to In progress, alert staff (and the vendor if assigned), and require a new after photo (2026-09-15)
 - Replace Alerts card list with a paginated table (15/page) filtered by read, request open/closed, and date range (2026-09-15)
 - Persist profile photo to the Person row as soon as upload finishes so refresh keeps the new image (2026-09-15)
 - Grant desk roles Blocks file-storage endpoints and share /Cloud/Default/BashaCare Evidence so resident photo upload works on prod (2026-09-15)
