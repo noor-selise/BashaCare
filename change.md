@@ -4,6 +4,7 @@ All changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+- Redeployed branch `dev` (build `76de5882-7069-4d1b-8525-345b5367233d`) to https://dbsblo.slsblx.com (2026-09-15)
 - Treat a slow leak as a request, ignore “not urgent” as Urgent, require an Override AI reason, parse nested IAM user lists as Active, and allow Account name save without a photo (by Noor, 2026-09-15)
 - Redeployed branch `dev` (build `ceb68159-a571-4028-abd5-a99e26f56c3f`) to https://dbsblo.slsblx.com (2026-09-15)
 - Redeployed branch `dev` (build `b8464118-20a5-49b0-ab88-f6bee5eb75e8`) to https://dbsblo.slsblx.com (2026-09-15)
