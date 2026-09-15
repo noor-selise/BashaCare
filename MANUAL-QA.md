@@ -176,8 +176,9 @@ Use **Flow G** below for a full manual pass of Path 2.
 | # | Login | Do | Pass if |
 | --- | --- | --- | --- |
 | C1 | Karim | Submit | Request created |
-| C2 | Hasan or Noor | Board | **Terracotta** emergency styling; AI **Emergency** / Water |
-| C3 | Staff | Acknowledge → Confirm AI → Assign (Rahman Pump or Metro Lift) → Start work → Confirm done | Full triage works |
+| C2 | Hasan or Noor | Board | **Terracotta** emergency styling; AI **Emergency** / Water; pulsing banner **needs acknowledgement** |
+| C2b | Hasan or Noor | **Acknowledge now** | Banner gone; card stays terracotta in Emergency column (no pulse) |
+| C3 | Staff | Confirm AI → Assign (Rahman Pump or Metro Lift) → Start work → Confirm done | Full triage works |
 | C4 | — | Complete through verify | Closes normally |
 
 ---
@@ -243,6 +244,7 @@ Use **Flow G** below for a full manual pass of Path 2.
 - [ ] Committee sees spend; staff/admin see money on board cards
 - [ ] Wrong IAM role → “No desk” or redirect (not a blank crash)
 - [ ] Emergency requests visually distinct (terracotta) on staff board
+- [ ] Unacked emergency: pulsing banner; after **Acknowledge** the banner stops, terracotta stays
 - [ ] **Path 1:** Confirm AI once → sidebar read-only; timeline has AI confirm
 - [ ] **Path 2:** Skip Confirm AI → job still closes; timeline has **no** AI confirm; closed ticket AI panel read-only
 

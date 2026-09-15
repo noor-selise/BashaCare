@@ -4,7 +4,7 @@ import { formatAge, statusLabel, urgencyLabel } from "@/lib/format"
 import { formatTaka } from "@/lib/money"
 import { fadeRise } from "@/lib/motion"
 import { cn } from "@/lib/cn"
-import { isNewRequest } from "@/lib/request-highlight"
+import { isNewRequest, isOpenEmergency, isUnackedEmergency } from "@/lib/request-highlight"
 import type { RequestRecord } from "@/types"
 
 type RequestCardProps = {
@@ -14,7 +14,8 @@ type RequestCardProps = {
 }
 
 export const RequestCard = ({ request, href, showMoney }: RequestCardProps) => {
-  const emergency = request.urgency === "emergency" && request.status !== "verified_closed"
+  const emergency = isOpenEmergency(request)
+  const loud = isUnackedEmergency(request)
   const isNew = isNewRequest(request)
   const reduceMotion = useReducedMotion()
 
@@ -23,7 +24,7 @@ export const RequestCard = ({ request, href, showMoney }: RequestCardProps) => {
       variants={fadeRise}
       whileHover={{ y: -2 }}
       animate={
-        emergency && !reduceMotion
+        emergency && loud && !reduceMotion
           ? { opacity: [1, 0.85, 1], transition: { duration: 1.8, repeat: Infinity, ease: "easeInOut" } }
           : undefined
       }
